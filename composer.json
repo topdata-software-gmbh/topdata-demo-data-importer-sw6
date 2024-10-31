@@ -1,0 +1,39 @@
+{
+    "name":        "topdata/topdata-demo-data-importer",
+    "description": "With this plugin you can import demo data",
+    "version":     "v7.0.0",
+    "type":        "shopware-platform-plugin",
+    "license":     "MIT",
+    "authors":     [
+        {
+            "name":     "TopData Software GmbH",
+            "homepage": "https://www.topdata.de",
+            "role":     "Manufacturer"
+        }
+    ],
+    "require":     {
+        "shopware/core": "6.5.* || 6.6.*"
+    },
+    "extra":       {
+        "shopware-plugin-class": "Topdata\\TopdataDemoDataImporterSW6\\TopdataDemoDataImporterSW6",
+        "plugin-icon": "src/Resources/config/plugin.png",
+        "copyright": "(c) by TopData Software GmbH",
+        "label":                 {
+            "de-DE": "Topdata Demo Data Importer",
+            "en-GB": "Topdata Demo Data Importer"
+        },
+        "description":           {
+            "de-DE": "Mit diesem Plugin können Sie Demo-Daten importieren",
+            "en-GB": "With this plugin you can import demo data"
+        },
+        "manufacturerLink":      {
+            "de-DE": "https://www.topdata.de",
+            "en-GB": "https://www.topdata.de"
+        }
+    },
+    "autoload":    {
+        "psr-4": {
+            "Topdata\\TopdataDemoDataImporterSW6\\": "src/"
+        }
+    }
+}

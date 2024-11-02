@@ -36,7 +36,7 @@ class ImportProductsCsvCommand extends AbstractTopdataCommand
     protected function configure(): void
     {
         $this
-            ->setName('topdata:connector:products')
+            ->setName('topdata:demo-data-importer:import-products-csv')
             ->setDescription('Import products from a CSV file')
             ->addOption('file', null, InputOption::VALUE_REQUIRED, 'Path to the CSV file')
             ->addOption('start', null, InputOption::VALUE_OPTIONAL, 'Start line number for import')

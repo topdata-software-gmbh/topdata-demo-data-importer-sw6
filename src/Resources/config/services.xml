@@ -6,7 +6,7 @@
     <services>
 
         <!-- COMMANDS -->
-        <service id="Topdata\TopdataConnectorSW6\Command\ProductsCommand" autowire="true">
+        <service id="Topdata\TopdataDemoDataImporterSW6\Command\ImportProductsCsvCommand" autowire="true">
             <tag name="console.command"/>
         </service>
 

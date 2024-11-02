@@ -10,11 +10,14 @@ use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 use Topdata\TopdataConnectorSW6\DTO\CsvConfiguration;
 use Topdata\TopdataConnectorSW6\Service\ProductService;
+use Topdata\TopdataFoundationSW6\Command\AbstractTopdataCommand;
 
 /**
  * Command to import products from a CSV file into Shopware 6
+ * 
+ * 11/2024 moved from TopdataConnectorSW6::ProductsCommand to TopdataDemoDataImporterSW6::ImportProductsCsvCommand
  */
-class ProductsCommand extends AbstractCommand
+class ImportProductsCsvCommand extends AbstractTopdataCommand
 {
     public function __construct(
         private readonly ProductService $productService
@@ -26,9 +29,9 @@ class ProductsCommand extends AbstractCommand
     /**
      * Configure the command options
      *
-     * Sets up all available command line options for the product import:
-     * - Required options: file, name, number
-     * - Optional options: start, end, wsid, description, ean, mpn, brand, divider, trim
+     * options for indexes of the columns in the CSV file:
+     *     - Required options: file, name, number
+     *     - Optional options: start, end, wsid, description, ean, mpn, brand, divider, trim
      */
     protected function configure(): void
     {

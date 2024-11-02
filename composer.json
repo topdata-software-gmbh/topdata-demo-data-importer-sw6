@@ -12,7 +12,8 @@
         }
     ],
     "require":     {
-        "shopware/core": "6.5.* || 6.6.*"
+        "shopware/core": "6.5.* || 6.6.*",
+        "topdata/topdata-foundation-sw6": "^1.0"
     },
     "extra":       {
         "shopware-plugin-class": "Topdata\\TopdataDemoDataImporterSW6\\TopdataDemoDataImporterSW6",

@@ -13,6 +13,7 @@ use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 use Topdata\TopdataFoundationSW6\Command\AbstractTopdataCommand;
+use Topdata\TopdataFoundationSW6\Service\PluginHelperService;
 
 /**
  * 11/2024 created
@@ -24,14 +25,16 @@ use Topdata\TopdataFoundationSW6\Command\AbstractTopdataCommand;
 class UseWebserviceDemoCredentialsCommand extends AbstractTopdataCommand
 {
 
+
     public function __construct(
-        private readonly Connection $connection,
+        private readonly Connection          $connection,
+        private readonly PluginHelperService $pluginHelperService
     )
     {
         parent::__construct();
     }
 
-    private function deleteExistingCredentials(): void
+    private function _deleteExistingCredentials(): void
     {
         $this->connection->executeStatement(
             'DELETE FROM system_config 
@@ -46,7 +49,7 @@ class UseWebserviceDemoCredentialsCommand extends AbstractTopdataCommand
         ]);
     }
 
-    private function insertCredentials(): void
+    private function _insertCredentials(): void
     {
         $now = (new \DateTime())->format(Defaults::STORAGE_DATE_TIME_FORMAT);
 
@@ -81,7 +84,7 @@ class UseWebserviceDemoCredentialsCommand extends AbstractTopdataCommand
         $this->addOption('force', 'f', InputOption::VALUE_NONE, 'Force overriding of credentials that already exist in the database');
     }
 
-    private function doCredentialsExist(): bool
+    private function _doCredentialsExist(): bool
     {
 
         // Check if any of the configs exist
@@ -107,15 +110,22 @@ class UseWebserviceDemoCredentialsCommand extends AbstractTopdataCommand
     {
         $force = (bool)$input->getOption('force');
 
-        if ($this->doCredentialsExist()) {
+        // ---- check if the plugin is installed
+        if (!$this->pluginHelperService->isWebserviceConnectorPluginAvailable()) {
+            $this->cliStyle->error('The Topdata Webservice Connector plugin is not installed.');
+            return Command::FAILURE;
+        }
+
+        // ---- check if credentials already exist
+        if ($this->_doCredentialsExist()) {
             if (!$force) {
                 $this->cliStyle->error('Credentials already exist. Use --force to override.');
                 return Command::FAILURE;
             }
-            $this->deleteExistingCredentials();
+            $this->_deleteExistingCredentials();
         }
 
-        $this->insertCredentials();
+        $this->_insertCredentials();
 
         $this->cliStyle->success('Credentials set');
 

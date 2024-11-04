@@ -27,7 +27,6 @@ class TopdataDemoDataAdminApiController extends AbstractController
 
     /**
      * Install demo data.
-     * FIXME: inject the ProductsCommand into the controller (later, make a service, eg DemoDataService)
      */
     #[Route(
         path: '/api/topdata/connector-install-demodata',

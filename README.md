@@ -10,6 +10,35 @@
 
 - Shopware 6.5.* or 6.6.*
 
+
+## Commands
+
+### topdata:demo-data-importer:import-products-csv
+- a console command for import products from csv file
+- example usage:
+
+```bash
+bin/console topdata:demo-data-importer:import-products-csv --file=prods2020-07-26.csv --start=1 --end=1000 --number=4 --wsid=4 --name=11 --brand=10
+```
+
+`--file`  specify filename
+
+`--start`  start line of a file, default is 1 (first line is 0, it usually have column titles)
+
+`--end`  end line of a file, by default file will be read until the end
+
+`--number`  column with unique product number
+
+`--wsid`  column with Webservice id (if csv is given from TopData it may have this column), if it is set product will be mapped to Top Data Webserivce products
+
+`--name`  column with product name
+
+`--brand`  column with product brand name (will be created if is not present yet)
+
+It is recommended to limit product count with start/end, depending on server RAM. Then you can read next chunk of products in second command.
+
+
+
 ## License
 
 MIT

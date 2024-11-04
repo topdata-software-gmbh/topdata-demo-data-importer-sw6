@@ -5,8 +5,18 @@
 
     <services>
 
+
+        <!-- SERVICES -->
+        <service id="Topdata\TopdataDemoDataImporterSW6\Service\ProductService" autowire="true"/>
+        <service id="Topdata\TopdataDemoDataImporterSW6\Service\ProductCsvReader" autowire="true"/>
+
+
         <!-- COMMANDS -->
         <service id="Topdata\TopdataDemoDataImporterSW6\Command\ImportProductsCsvCommand" autowire="true">
+            <tag name="console.command"/>
+        </service>
+
+        <service id="Topdata\TopdataDemoDataImporterSW6\Command\ImportDemoProductsCommand" autowire="true">
             <tag name="console.command"/>
         </service>
 

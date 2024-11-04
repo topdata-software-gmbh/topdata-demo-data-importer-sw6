@@ -4,11 +4,9 @@ declare(strict_types=1);
 
 namespace Topdata\TopdataDemoDataImportSW6\Service;
 
-use Shopware\Core\Framework\Context;
+use Topdata\TopdataDemoDataImporterSW6\Service\ProductService;
 
 /**
- * TODO: move this into a new Plugin TopdataDemoDataImportSW6
- *
  * 10/2024 created (extracted from ProductService)
  */
 class DemoDataImportService
@@ -34,7 +32,7 @@ class DemoDataImportService
      * @param string $filename
      * @return array
      */
-    public function installDemoData(string $filename = 'demo.csv'): array
+    public function installDemoData(string $filename = 'demo-products.csv'): array
     {
         $this->divider = ';';
         $this->trim = '"';
@@ -45,7 +43,7 @@ class DemoDataImportService
             ];
         }
 
-        $file = dirname(__FILE__) . '/../DemoData/' . $filename;
+        $file = __DIR__ . '/../Resources/demo-data/' . $filename;
         $handle = fopen($file, 'r');
         if (!$handle) {
             return [

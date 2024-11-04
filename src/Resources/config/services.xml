@@ -21,6 +21,10 @@
             <tag name="console.command"/>
         </service>
 
+        <service id="Topdata\TopdataDemoDataImporterSW6\Command\UseWebserviceDemoCredentialsCommand" autowire="true">
+            <tag name="console.command"/>
+        </service>
+
 
     </services>
 </container>

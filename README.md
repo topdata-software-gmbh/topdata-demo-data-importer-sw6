@@ -13,6 +13,22 @@
 
 ## Commands
 
+### topdata:demo-data-importer:import-demo-products
+- imports demo products from the bundled demo-products.csv file
+- example usage:
+
+```bash
+bin/console topdata:demo-data-importer:import-demo-products
+```
+
+### topdata:demo-data-importer:use-webservice-demo-credentials
+- sets up demo credentials for the Topdata webservice
+- example usage:
+
+```bash
+bin/console topdata:demo-data-importer:use-webservice-demo-credentials
+```
+
 ### topdata:demo-data-importer:import-products-csv
 - a console command for import products from csv file
 - example usage:

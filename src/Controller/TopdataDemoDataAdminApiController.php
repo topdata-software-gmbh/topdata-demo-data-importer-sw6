@@ -4,12 +4,10 @@ declare(strict_types=1);
 
 namespace Topdata\TopdataConnectorSW6\Controller\Admin;
 
-use Shopware\Core\Framework\Context;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
-use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Annotation\Route;
-use Topdata\TopdataDemoDataImportSW6\Service\DemoDataImportService;
+use Topdata\TopdataDemoDataImporterSW6\Service\DemoDataImportService;
 
 /**
  * 11/2024 extracted from TopdataWebserviceConnectorAdminApiController
@@ -33,7 +31,7 @@ class TopdataDemoDataAdminApiController extends AbstractController
         name: 'api.action.topdata.connector-install-demodata',
         methods: ['GET']
     )]
-    public function installDemoData(Request $request, Context $context): JsonResponse
+    public function installDemoData(): JsonResponse
     {
         $result = $this->demoDataImportService->installDemoData();
 

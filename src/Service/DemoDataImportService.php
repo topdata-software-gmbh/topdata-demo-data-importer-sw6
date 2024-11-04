@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Topdata\TopdataDemoDataImportSW6\Service;
+namespace Topdata\TopdataDemoDataImporterSW6\Service;
 
 use Topdata\TopdataDemoDataImporterSW6\Service\ProductService;
 

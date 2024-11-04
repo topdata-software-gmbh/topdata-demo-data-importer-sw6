@@ -9,6 +9,7 @@
         <!-- SERVICES -->
         <service id="Topdata\TopdataDemoDataImporterSW6\Service\ProductService" autowire="true"/>
         <service id="Topdata\TopdataDemoDataImporterSW6\Service\ProductCsvReader" autowire="true"/>
+        <service id="Topdata\TopdataDemoDataImporterSW6\Service\DemoDataImportService" autowire="true"/>
 
 
         <!-- COMMANDS -->

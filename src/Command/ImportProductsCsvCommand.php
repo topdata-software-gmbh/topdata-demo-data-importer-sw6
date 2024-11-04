@@ -8,8 +8,8 @@ use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
-use Topdata\TopdataConnectorSW6\DTO\CsvConfiguration;
-use Topdata\TopdataConnectorSW6\Service\ProductService;
+use Topdata\TopdataDemoDataImporterSW6\DTO\CsvConfiguration;
+use Topdata\TopdataDemoDataImporterSW6\Service\ProductService;
 use Topdata\TopdataFoundationSW6\Command\AbstractTopdataCommand;
 
 /**

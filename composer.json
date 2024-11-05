@@ -13,7 +13,7 @@
     ],
     "extra":       {
         "shopware-plugin-class": "Topdata\\TopdataDemoDataImporterSW6\\TopdataDemoDataImporterSW6",
-        "plugin-icon": "src/Resources/config/plugin.png",
+        "plugin-icon": "src/Resources/config/topdata-demo-data-importer-sw6-256x256.png",
         "copyright": "(c) by TopData Software GmbH",
         "label":                 {
             "de-DE": "Topdata Demo Data Importer",

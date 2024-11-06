@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Topdata\TopdataConnectorSW6\Controller\Admin;
+namespace Topdata\TopdataDemoDataImporterSW6\Controller;
 
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -12,7 +12,10 @@ use Topdata\TopdataDemoDataImporterSW6\Service\DemoDataImportService;
 /**
  * 11/2024 extracted from TopdataWebserviceConnectorAdminApiController
  */
-#[Route(defaults: ['_routeScope' => ['administration']])]
+#[Route(
+    path: '/api',
+    defaults: ['_routeScope' => ['administration']],
+)]
 class TopdataDemoDataAdminApiController extends AbstractController
 {
 
@@ -27,9 +30,8 @@ class TopdataDemoDataAdminApiController extends AbstractController
      * Install demo data.
      */
     #[Route(
-        path: '/api/topdata/connector-install-demodata',
-        name: 'api.action.topdata.connector-install-demodata',
-        methods: ['GET']
+        path: '/topdata-demo-data/install-demodata',
+        methods: ['GET'] // TODO: use POST
     )]
     public function installDemoData(): JsonResponse
     {

@@ -8,7 +8,7 @@ import template from './topdata-demo-data-index.html.twig';
 Shopware.Component.register('topdata-demo-data-index', {
     template,
 
-    inject: ['httpClient', 'TopdataDemoDataApiService'],
+    inject: ['TopdataDemoDataApiService'],
 
     data() {
         return {
@@ -17,9 +17,6 @@ Shopware.Component.register('topdata-demo-data-index', {
     },
 
     methods: {
-
-
-
         /**
          * Triggers the demo data import via AJAX
          * Shows loading state and handles success/error notifications
@@ -28,25 +25,9 @@ Shopware.Component.register('topdata-demo-data-index', {
             this.isLoading = true;
 
             // Use the demo data service to import demo data
-            this.TopdataDemoDataApiService
-                .installDemoData()
-                .then(() => {
-                    // Show success notification
-                    this.createNotificationSuccess({
-                        title: this.$tc('topdata-demo-data.general.successTitle'),
-                        message: this.$tc('topdata-demo-data.general.successMessage')
-                    });
-                })
-                .catch((error) => {
-                    // Show error notification
-                    this.createNotificationError({
-                        title: this.$tc('topdata-demo-data.general.errorTitle'),
-                        message: error.response.data.message || this.$tc('topdata-demo-data.general.errorMessage')
-                    });
-                })
-                .finally(() => {
-                    this.isLoading = false;
-                });
+            this.TopdataDemoDataApiService.installDemoData().finally(() => {
+                this.isLoading = false;
+            });
         }
     }
 });

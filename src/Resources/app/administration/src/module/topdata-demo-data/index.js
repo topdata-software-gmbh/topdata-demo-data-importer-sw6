@@ -33,7 +33,6 @@ Shopware.Module.register('topdata-demo-data', {
 });
 
 // Register the demo data service
-Shopware.Service().register('TopdataDemoDataApiService', (container) => {
-    const initContainer = Shopware.Application.getContainer('init');
-    return new DemoDataApiService(initContainer.httpClient, container.loginService);
+Shopware.Service().register('TopdataDemoDataApiService', () => {
+    return new DemoDataApiService();
 });

@@ -26,5 +26,12 @@
         </service>
 
 
+        <!-- CONTROLLERS -->
+        <service id="Topdata\TopdataDemoDataImporterSW6\Controller\TopdataDemoDataAdminApiController" public="true" autowire="true">
+            <call method="setContainer">
+                <argument type="service" id="service_container"/>
+            </call>
+        </service>
+
     </services>
 </container>

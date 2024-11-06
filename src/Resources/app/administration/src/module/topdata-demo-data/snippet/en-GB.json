@@ -1,0 +1,13 @@
+{
+    "topdata-demo-data": {
+        "general": {
+            "mainMenuTitle": "Topdata Demo Data",
+            "descriptionTextModule": "Import demo data",
+            "importButton": "Import Demo Data",
+            "successTitle": "Success",
+            "successMessage": "Demo data has been imported successfully",
+            "errorTitle": "Error",
+            "errorMessage": "An error occurred while importing demo data"
+        }
+    }
+}

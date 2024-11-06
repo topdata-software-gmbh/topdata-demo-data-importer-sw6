@@ -1,0 +1,20 @@
+{# Template for the demo data import page #}
+{# Uses Shopware's UI components for consistent styling #}
+<sw-page class="topdata-demo-data-index">
+    <template #content>
+        <sw-card-view>
+            {# Main card containing the import button #}
+            <sw-card
+                :isLoading="isLoading"
+                :large="true">
+                {# Primary action button that triggers the import #}
+                <sw-button
+                    variant="primary"
+                    size="large"
+                    @click="importDemoData">
+                    {{ $tc('topdata-demo-data.general.importButton') }}
+                </sw-button>
+            </sw-card>
+        </sw-card-view>
+    </template>
+</sw-page>

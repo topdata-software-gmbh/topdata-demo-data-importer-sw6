@@ -43,7 +43,7 @@ class UseWebserviceDemoCredentialsCommand extends AbstractTopdataCommand
                 :apiKey,
                 :apiSalt
             )', [
-            'username' => 'TopdataConnectorSW6.config.apiUsername',
+            'username' => 'TopdataConnectorSW6.config.apiUid',
             'apiKey'   => 'TopdataConnectorSW6.config.apiKey',
             'apiSalt'  => 'TopdataConnectorSW6.config.apiSalt',
         ]);
@@ -53,22 +53,26 @@ class UseWebserviceDemoCredentialsCommand extends AbstractTopdataCommand
     {
         $now = (new \DateTime())->format(Defaults::STORAGE_DATE_TIME_FORMAT);
 
+        //    * API User ID: 6
+        //    * API Password: nTI9kbsniVWT13Ns
+        //    * API Security Key: oateouq974fpby5t6ldf8glzo85mr9t6aebozrox
+
         $configs = [
             [
                 'id'                  => Uuid::randomBytes(),
-                'configuration_key'   => 'TopdataConnectorSW6.config.apiUsername',
+                'configuration_key'   => 'TopdataConnectorSW6.config.apiUid',
                 'configuration_value' => json_encode(['_value' => '6']),
                 'created_at'          => $now
             ],
             [
                 'id'                  => Uuid::randomBytes(),
-                'configuration_key'   => 'TopdataConnectorSW6.config.apiKey',
+                'configuration_key'   => 'TopdataConnectorSW6.config.apiPassword',
                 'configuration_value' => json_encode(['_value' => 'nTI9kbsniVWT13Ns']),
                 'created_at'          => $now
             ],
             [
                 'id'                  => Uuid::randomBytes(),
-                'configuration_key'   => 'TopdataConnectorSW6.config.apiSalt',
+                'configuration_key'   => 'TopdataConnectorSW6.config.apiSecurityKey',
                 'configuration_value' => json_encode(['_value' => 'oateouq974fpby5t6ldf8glzo85mr9t6aebozrox']),
                 'created_at'          => $now
             ],
@@ -96,7 +100,7 @@ class UseWebserviceDemoCredentialsCommand extends AbstractTopdataCommand
                     :apiSalt
                 )',
             [
-                'username' => 'TopdataConnectorSW6.config.apiUsername',
+                'username' => 'TopdataConnectorSW6.config.apiUid',
                 'apiKey'   => 'TopdataConnectorSW6.config.apiKey',
                 'apiSalt'  => 'TopdataConnectorSW6.config.apiSalt',
             ]

@@ -25,6 +25,9 @@
             <tag name="console.command"/>
         </service>
 
+        <service id="Topdata\TopdataDemoDataImporterSW6\Command\RemoveDemoProductsCommand" autowire="true">
+            <tag name="console.command"/>
+        </service>
 
         <!-- CONTROLLERS -->
         <service id="Topdata\TopdataDemoDataImporterSW6\Controller\TopdataDemoDataAdminApiController" public="true" autowire="true">

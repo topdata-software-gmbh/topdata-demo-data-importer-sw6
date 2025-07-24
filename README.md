@@ -1,5 +1,7 @@
 # With this plugin you can import demo data
 
+![topdata-demo-data-importer-sw6-256x256.png](src/Resources/config/topdata-demo-data-importer-sw6-256x256.png)
+
 ## Installation
 
 1. Download the plugin

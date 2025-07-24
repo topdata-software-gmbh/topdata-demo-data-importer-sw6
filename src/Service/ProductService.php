@@ -13,6 +13,7 @@ use Shopware\Core\Framework\DataAbstractionLayer\Search\Criteria;
 use Shopware\Core\Framework\DataAbstractionLayer\Search\Filter\EqualsAnyFilter;
 use Shopware\Core\Framework\Uuid\Uuid;
 use Topdata\TopdataDemoDataImporterSW6\DTO\CsvConfiguration;
+use Topdata\TopdataDemoDataImporterSW6\TopdataDemoDataImporterSW6;
 use Topdata\TopdataFoundationSW6\Service\LocaleHelperService;
 
 /**
@@ -106,6 +107,9 @@ class ProductService
                         'salesChannelId' => $storefrontSalesChannel,
                         'visibility'     => ProductVisibilityDefinition::VISIBILITY_ALL,
                     ],
+                ],
+                'customFields' => [
+                    TopdataDemoDataImporterSW6::CUSTOM_FIELD_IS_DEMO_PRODUCT => true,
                 ],
             ];
 

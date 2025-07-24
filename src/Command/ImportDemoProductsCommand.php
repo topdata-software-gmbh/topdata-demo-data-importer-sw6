@@ -33,9 +33,26 @@ class ImportDemoProductsCommand extends AbstractTopdataCommand
     {
         $result = $this->demoDataImportService->installDemoData();
 
-        dump($result);
+        if (isset($result['importedProducts']) && is_array($result['importedProducts'])) {
+            $this->cliStyle->section('Imported Articles');
+            
+            $tableHeaders = ['Product Number', 'Name', 'EAN', 'MPN'];
+            $tableRows = [];
+            
+            foreach ($result['importedProducts'] as $product) {
+                $tableRows[] = [
+                    $product['productNumber'] ?? '',
+                    $product['name'] ?? '',
+                    $product['ean'] ?? '',
+                    $product['mpn'] ?? ''
+                ];
+            }
+            
+            $this->cliStyle->table($tableHeaders, $tableRows);
+            $this->cliStyle->newLine();
+        }
 
-        $this->cliStyle->success('Demo data imported successfully!');
+        $this->cliStyle->success($result['additionalInfo'] ?? 'Demo data imported successfully!');
         $this->cliStyle->writeln("Consider to run <info>topdata:connector:import</info> command to enrich the products with additional data.");
 
         $this->done();

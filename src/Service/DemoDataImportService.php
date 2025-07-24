@@ -7,7 +7,8 @@ namespace Topdata\TopdataDemoDataImporterSW6\Service;
 use Topdata\TopdataDemoDataImporterSW6\Service\ProductService;
 
 /**
- * 10/2024 created (extracted from ProductService)
+ * Handles the import of demo data from a CSV file.
+ * 07/2024 created (extracted from ProductService)
  */
 class DemoDataImportService
 {
@@ -25,12 +26,11 @@ class DemoDataImportService
     }
 
     /**
+     * Installs demo data from a CSV file.
      * 10/2024 extracted from ProductService
      *
-     * Install demo data from file
-     *
-     * @param string $filename
-     * @return array
+     * @param string $filename The name of the CSV file to import. Defaults to 'demo-products.csv'.
+     * @return array An array containing the import status and additional information.
      */
     public function installDemoData(string $filename = 'demo-products.csv'): array
     {
@@ -61,6 +61,8 @@ class DemoDataImportService
         }
 
         $values = explode($this->divider, $line);
+
+        // ---- Determine column indices based on header row
         foreach ($values as $key => $val) {
             $val = trim($val);
             if ($val === 'article_no') {
@@ -107,21 +109,23 @@ class DemoDataImportService
 
         $products = [];
 
+        // ---- Read and process each line of the CSV file
         while (($line = fgets($handle)) !== false) {
             $values = explode($this->divider, $line);
             foreach ($values as $key => $val) {
                 $values[$key] = trim($val, $this->trim);
             }
             $products[$values[$this->columnNumber]] = [
-                'productNumber' => $values[$this->columnNumber],
-                'name'          => $values[$this->columnName],
-                'ean'           => $values[$this->columnEAN],
-                'mpn'           => $values[$this->columnMPN],
+                'productNumber' => trim($values[$this->columnNumber]),
+                'name'          => trim($values[$this->columnName]),
+                'ean'           => trim($values[$this->columnEAN]),
+                'mpn'           => trim($values[$this->columnMPN]),
             ];
         }
 
         fclose($handle);
 
+        // ---- Clear existing products and format the product array
         $products = $this->productService->clearExistingProductsByProductNumber($products);
         if (count($products)) {
             $products = $this->productService->formProductsArray($products, 100000.0);
@@ -132,11 +136,20 @@ class DemoDataImportService
             ];
         }
 
+        // ---- Create the products
         $this->productService->createProducts($products);
 
         return [
-            'success'        => true,
-            'additionalInfo' => count($products) . ' products has been added',
+            'success'          => true,
+            'additionalInfo'   => count($products) . ' products has been added',
+            'importedProducts' => array_map(function ($product) {
+                return [
+                    'productNumber' => $product['productNumber'],
+                    'name'          => $product['name'][array_key_first($product['name'])],
+                    'ean'           => $product['ean'] ?? null,
+                    'mpn'           => $product['manufacturerNumber'] ?? null,
+                ];
+            }, $products)
         ];
     }
 }

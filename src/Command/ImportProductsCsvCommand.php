@@ -14,7 +14,7 @@ use Topdata\TopdataFoundationSW6\Command\AbstractTopdataCommand;
 
 /**
  * Command to import products from a CSV file into Shopware 6
- * 
+ *
  * 11/2024 moved from TopdataConnectorSW6::ProductsCommand to TopdataDemoDataImporterSW6::ImportProductsCsvCommand
  */
 class ImportProductsCsvCommand extends AbstractTopdataCommand
@@ -64,13 +64,13 @@ class ImportProductsCsvCommand extends AbstractTopdataCommand
         echo $file . "\n";
 
         $columnMapping = [
-            'number' => (int)$input->getOption('number'),
-            'name' => (int)$input->getOption('name'),
-            'wsid' => $input->getOption('wsid') ? (int)$input->getOption('wsid') : null,
+            'number'      => (int)$input->getOption('number'),
+            'name'        => (int)$input->getOption('name'),
+            'wsid'        => $input->getOption('wsid') ? (int)$input->getOption('wsid') : null,
             'description' => $input->getOption('description') ? (int)$input->getOption('description') : null,
-            'ean' => $input->getOption('ean') ? (int)$input->getOption('ean') : null,
-            'mpn' => $input->getOption('mpn') ? (int)$input->getOption('mpn') : null,
-            'brand' => $input->getOption('brand') ? (int)$input->getOption('brand') : null,
+            'ean'         => $input->getOption('ean') ? (int)$input->getOption('ean') : null,
+            'mpn'         => $input->getOption('mpn') ? (int)$input->getOption('mpn') : null,
+            'brand'       => $input->getOption('brand') ? (int)$input->getOption('brand') : null,
         ];
 
         $csvConfig = new CsvConfiguration(

@@ -56,7 +56,7 @@ class RemoveDemoProductsCommand extends AbstractTopdataCommand
         $this->cliStyle->warning(sprintf('%d demo products will be permanently deleted.', $productIdsResult->getTotal()));
 
         $force = $input->getOption('force');
-        if (!$force && !$this->cliStyle->confirm('Are you sure you want to proceed?', false)) {
+        if (!$force && !$this->cliStyle->confirm('Are you sure you want to proceed?', true)) {
             $this->cliStyle->writeln('Aborted.');
             return Command::FAILURE;
         }

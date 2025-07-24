@@ -7,6 +7,7 @@ namespace Topdata\TopdataDemoDataImporterSW6\Command;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
+use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 use Topdata\TopdataDemoDataImporterSW6\Service\DemoDataImportService;
 use Topdata\TopdataFoundationSW6\Command\AbstractTopdataCommand;
@@ -29,8 +30,21 @@ class ImportDemoProductsCommand extends AbstractTopdataCommand
         parent::__construct();
     }
 
+    protected function configure(): void
+    {
+        $this->addOption('force', 'f', InputOption::VALUE_NONE, 'Do not ask for confirmation and import products immediately.');
+    }
+
     public function execute(InputInterface $input, OutputInterface $output): int
     {
+        $this->cliStyle->warning('This will import demo products into your shop.');
+        
+        $force = $input->getOption('force');
+        if (!$force && !$this->cliStyle->confirm('Are you sure you want to proceed?', true)) {
+            $this->cliStyle->writeln('Aborted.');
+            return Command::FAILURE;
+        }
+
         $result = $this->demoDataImportService->installDemoData();
 
         if (isset($result['importedProducts']) && is_array($result['importedProducts'])) {
@@ -59,5 +73,4 @@ class ImportDemoProductsCommand extends AbstractTopdataCommand
 
         return Command::SUCCESS;
     }
-
 }

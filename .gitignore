@@ -10,3 +10,8 @@ vendor/
 src/Resources/public/administration/assets
 src/Resources/public/storefront/assets
 .vite
+
+
+repomix-output.txt
+
+

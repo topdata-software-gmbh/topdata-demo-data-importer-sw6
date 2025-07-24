@@ -45,15 +45,35 @@ class RemoveDemoProductsCommand extends AbstractTopdataCommand
         $criteria = new Criteria();
         $criteria->addFilter(new EqualsFilter('customFields.' . TopdataDemoDataImporterSW6::CUSTOM_FIELD_IS_DEMO_PRODUCT, true));
 
-        $productIdsResult = $this->productRepository->searchIds($criteria, $context);
+        // Fetch full product details instead of just IDs
+        $criteria->addAssociation('manufacturer');
+        $products = $this->productRepository->search($criteria, $context);
 
-        if ($productIdsResult->getTotal() === 0) {
+        if ($products->getTotal() === 0) {
             $this->cliStyle->success('No demo products found to remove.');
             $this->done();
             return Command::SUCCESS;
         }
 
-        $this->cliStyle->warning(sprintf('%d demo products will be permanently deleted.', $productIdsResult->getTotal()));
+        $this->cliStyle->warning(sprintf('%d demo products will be permanently deleted.', $products->getTotal()));
+
+        // Display table of products to be removed
+        $this->cliStyle->section('Products to be removed');
+        
+        $tableHeaders = ['Product Number', 'Name', 'EAN', 'MPN'];
+        $tableRows = [];
+        
+        foreach ($products->getEntities() as $product) {
+            $tableRows[] = [
+                $product->getProductNumber() ?? '',
+                $product->getTranslation('name') ?? '',
+                $product->getEan() ?? '',
+                $product->getManufacturerNumber() ?? ''
+            ];
+        }
+        
+        $this->cliStyle->table($tableHeaders, $tableRows);
+        $this->cliStyle->newLine();
 
         $force = $input->getOption('force');
         if (!$force && !$this->cliStyle->confirm('Are you sure you want to proceed?', true)) {
@@ -61,10 +81,11 @@ class RemoveDemoProductsCommand extends AbstractTopdataCommand
             return Command::FAILURE;
         }
 
-        $idsToDelete = array_map(static fn ($id) => ['id' => $id], $productIdsResult->getIds());
+        // Extract IDs for deletion
+        $idsToDelete = array_values(array_map(static fn ($product) => ['id' => $product->getId()], $products->getEntities()->getElements()));
         $this->productRepository->delete($idsToDelete, $context);
 
-        $this->cliStyle->success(sprintf('Successfully deleted %d demo products.', $productIdsResult->getTotal()));
+        $this->cliStyle->success(sprintf('Successfully deleted %d demo products.', $products->getTotal()));
         $this->done();
 
         return Command::SUCCESS;

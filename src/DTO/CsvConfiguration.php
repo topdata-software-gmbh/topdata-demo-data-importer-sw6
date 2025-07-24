@@ -5,7 +5,7 @@ namespace Topdata\TopdataDemoDataImporterSW6\DTO;
 /**
  * Configuration for CSV import
  */
-readonly class CsvConfiguration
+class CsvConfiguration
 {
 
     /**

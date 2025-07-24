@@ -3,3 +3,10 @@
 builds/
 vendor/
 .rector-cache
+
+
+
+# Ignore all generated asset directories in plugins
+src/Resources/public/administration/assets
+src/Resources/public/storefront/assets
+.vite

@@ -55,6 +55,21 @@ bin/console topdata:demo-data-importer:import-products-csv --file=prods2020-07-2
 
 It is recommended to limit product count with start/end, depending on server RAM. Then you can read next chunk of products in second command.
 
+### topdata:demo-data-importer:remove-demo-products
+- removes all demo products that were imported by this plugin
+- includes a confirmation prompt for safety
+- example usage:
+
+```bash
+bin/console topdata:demo-data-importer:remove-demo-products
+```
+
+To skip the confirmation prompt (use with caution):
+
+```bash
+bin/console topdata:demo-data-importer:remove-demo-products --force
+```
+
 
 
 ## License

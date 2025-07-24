@@ -3,6 +3,11 @@
 All notable changes to this project will be documented in this file. 
 The format is based on [Keep a Changelog](https://keepachangelog.com/) and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [7.1.0] - 2025-07-24
+### Added
+- New command `topdata:demo-data-importer:remove-demo-products` to remove all demo products imported by this plugin
+- Command includes safety confirmation prompt and optional --force flag to skip confirmation
+
 ## [7.0.2] - 2024-11-05
 ### Added
 - success message added to the import demo data command, hinting at topdata:connector:import command

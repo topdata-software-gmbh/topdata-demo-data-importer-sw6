@@ -11,6 +11,7 @@ use Shopware\Core\Framework\Context;
 use Shopware\Core\Framework\DataAbstractionLayer\EntityRepository;
 use Shopware\Core\Framework\DataAbstractionLayer\Search\Criteria;
 use Shopware\Core\Framework\DataAbstractionLayer\Search\Filter\EqualsAnyFilter;
+use Shopware\Core\Framework\DataAbstractionLayer\Search\Filter\EqualsFilter;
 use Shopware\Core\Framework\Uuid\Uuid;
 use Topdata\TopdataDemoDataImporterSW6\DTO\CsvConfiguration;
 use Topdata\TopdataDemoDataImporterSW6\TopdataDemoDataImporterSW6;
@@ -125,11 +126,11 @@ class ProductService
                 ];
             }
 
-            if (isset($in['brand'])) {
-                $prod['manufacturer'] = [
-                    'id' => $this->getManufacturerIdByName($in['brand']),
-                ];
-            }
+//            if (isset($in['brand'])) {
+//                $prod['manufacturer'] = [
+//                    'id' => $this->_getManufacturerIdByName($in['brand']),
+//                ];
+//            }
 
             if (isset($in['mpn'])) {
                 $prod['manufacturerNumber'] = $in['mpn'];
@@ -171,6 +172,29 @@ class ProductService
 
         return $rezProducts;
     }
+
+//    private function _getManufacturerIdByName(string $name): string
+//    {
+//        $criteria = new Criteria();
+//        $criteria->addFilter(new EqualsFilter('name', $name));
+//
+//        $manufacturer = $this->productManufacturerRepository->search($criteria, $this->context)->first();
+//
+//        if ($manufacturer !== null) {
+//            return $manufacturer->getId();
+//        }
+//
+//        // Manufacturer not found, create a new one
+//        $newManufacturerId = Uuid::randomHex();
+//        $this->productManufacturerRepository->create([
+//            [
+//                'id'   => $newManufacturerId,
+//                'name' => $name,
+//            ]
+//        ], $this->context);
+//
+//        return $newManufacturerId;
+//    }
 
 
 }

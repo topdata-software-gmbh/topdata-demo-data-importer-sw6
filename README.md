@@ -10,7 +10,7 @@
 
 ## Requirements
 
-- Shopware 6.5.* or 6.6.*
+- Shopware 6.5.* or 6.6.* or 6.7.*
 
 
 ## Commands

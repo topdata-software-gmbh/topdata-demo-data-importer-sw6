@@ -13,7 +13,6 @@ use Topdata\TopdataDemoDataImporterSW6\Service\DemoDataImportService;
  * 11/2024 extracted from TopdataWebserviceConnectorAdminApiController
  */
 #[Route(
-    path: '/api',
     defaults: ['_routeScope' => ['administration']],
 )]
 class TopdataDemoDataAdminApiController extends AbstractController
@@ -30,7 +29,7 @@ class TopdataDemoDataAdminApiController extends AbstractController
      * Install demo data.
      */
     #[Route(
-        path: '/topdata-demo-data/install-demodata',
+        path: '/api/topdata-demo-data/install-demodata',
         methods: ['GET'] // TODO: use POST
     )]
     public function installDemoData(): JsonResponse

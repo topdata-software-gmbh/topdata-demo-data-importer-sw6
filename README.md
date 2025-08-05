@@ -17,10 +17,61 @@
 
 ### topdata:demo-data-importer:import-demo-products
 - imports demo products from the bundled demo-products.csv file
-- example usage:
 
+This command supports three modes for category assignment:
+
+1.  **Interactive Mode (Default):** Run the command without category options to get an interactive prompt to choose a category.
+    ```bash
+    bin/console topdata:demo-data-importer:import-demo-products
+    ```
+
+2.  **Direct Assignment:** Use the `--category-id` option to assign products directly to a category.
+    ```bash
+    bin/console topdata:demo-data-importer:import-demo-products --category-id=your-category-id-here
+    ```
+
+3.  **No Category:** Use the `--no-category` flag to import products without assigning them to any category.
+    ```bash
+    bin/console topdata:demo-data-importer:import-demo-products --no-category
+    ```
+
+#### Usage Examples
+
+**Example 1: Interactive Category Selection**
 ```bash
-bin/console topdata:demo-data-importer:import-demo-products
+$ bin/console topdata:demo-data-importer:import-demo-products
+
+ This will import demo products into your shop.
+
+ Please select a category to assign the demo products to:
+  [0] Home & Garden
+  [1] Electronics
+  [2] Clothing
+  [3] Do not assign to any category
+ > 1
+
+ [OK] Demo data imported successfully! Products have been assigned to category: Electronics
+```
+
+**Example 2: Direct Category Assignment**
+```bash
+$ bin/console topdata:demo-data-importer:import-demo-products --category-id=019123456789abcdef
+
+ [OK] Demo data imported successfully! Products have been assigned to category: Electronics
+```
+
+**Example 3: Import Without Category**
+```bash
+$ bin/console topdata:demo-data-importer:import-demo-products --no-category
+
+ [OK] Demo data imported successfully! Products have been imported without category assignment.
+```
+
+**Example 4: Force Import Without Confirmation**
+```bash
+$ bin/console topdata:demo-data-importer:import-demo-products --category-id=019123456789abcdef --force
+
+ [OK] Demo data imported successfully! Products have been assigned to category: Electronics
 ```
 
 ### topdata:demo-data-importer:use-webservice-demo-credentials

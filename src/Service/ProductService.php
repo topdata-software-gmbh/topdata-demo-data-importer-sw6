@@ -76,7 +76,7 @@ class ProductService
         return $this->productCsvReader->readProducts($filePath, $config);
     }
 
-    public function formProductsArray(array $input, float $price = 1.0): array
+    public function formProductsArray(array $input, float $price = 1.0, ?string $categoryId = null): array
     {
         $output = [];
         $taxId = $this->getTaxId();
@@ -112,6 +112,12 @@ class ProductService
                     TopdataDemoDataImporterSW6::CUSTOM_FIELD_IS_DEMO_PRODUCT => true,
                 ],
             ];
+
+            if ($categoryId) {
+                $prod['categories'] = [
+                    ['id' => $categoryId],
+                ];
+            }
 
             if (isset($in['description'])) {
                 $prod['description'] = [

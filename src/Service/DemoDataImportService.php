@@ -30,9 +30,10 @@ class DemoDataImportService
      * 10/2024 extracted from ProductService
      *
      * @param string $filename The name of the CSV file to import. Defaults to 'demo-products.csv'.
+     * @param string|null $categoryId Optional category ID to assign products to.
      * @return array An array containing the import status and additional information.
      */
-    public function installDemoData(string $filename = 'demo-products.csv'): array
+    public function installDemoData(string $filename = 'demo-products.csv', ?string $categoryId = null): array
     {
         $this->divider = ';';
         $this->trim = '"';
@@ -128,7 +129,7 @@ class DemoDataImportService
         // ---- Clear existing products and format the product array
         $products = $this->productService->clearExistingProductsByProductNumber($products);
         if (count($products)) {
-            $products = $this->productService->formProductsArray($products, 100000.0);
+            $products = $this->productService->formProductsArray($products, 100000.0, $categoryId);
         } else {
             return [
                 'success'        => true,

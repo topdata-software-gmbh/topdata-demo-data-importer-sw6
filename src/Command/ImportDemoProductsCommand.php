@@ -128,6 +128,7 @@ class ImportDemoProductsCommand extends AbstractTopdataCommand
     {
         $criteria = new \Shopware\Core\Framework\DataAbstractionLayer\Search\Criteria();
         $criteria->addSorting(new \Shopware\Core\Framework\DataAbstractionLayer\Search\Sorting\FieldSorting('name'));
+        $criteria->addAssociation('parent');
         $criteria->setLimit(100);
 
         $categories = $this->categoryRepository->search($criteria, \Shopware\Core\Framework\Context::createDefaultContext());
@@ -137,12 +138,21 @@ class ImportDemoProductsCommand extends AbstractTopdataCommand
             return null;
         }
 
+        // Build category tree for breadcrumb generation
+        $categoryMap = [];
+        foreach ($categories as $category) {
+            $categoryMap[$category->getId()] = $category;
+        }
+
         $choices = [];
         foreach ($categories as $category) {
             /** @var CategoryEntity $category */
+            $breadcrumb = $this->buildBreadcrumb($category, $categoryMap);
+            $displayName = implode(' > ', $breadcrumb);
+            
             $choices[$category->getId()] = sprintf(
                 '%s (ID: %s)',
-                $category->getName() ?? 'Unnamed Category',
+                $displayName,
                 $category->getId()
             );
         }
@@ -157,5 +167,33 @@ class ImportDemoProductsCommand extends AbstractTopdataCommand
         );
 
         return $selectedCategoryId;
+    }
+
+    /**
+     * Build breadcrumb path for a category
+     *
+     * @param CategoryEntity $category
+     * @param array<string, CategoryEntity> $categoryMap
+     * @return string[]
+     */
+    private function buildBreadcrumb(CategoryEntity $category, array $categoryMap): array
+    {
+        $breadcrumb = [];
+        $current = $category;
+        
+        // Build breadcrumb from current category up to root
+        while ($current !== null) {
+            array_unshift($breadcrumb, $current->getName() ?? 'Unnamed Category');
+            
+            // Check if parent exists in our loaded categories
+            $parentId = $current->getParentId();
+            if ($parentId && isset($categoryMap[$parentId])) {
+                $current = $categoryMap[$parentId];
+            } else {
+                $current = null;
+            }
+        }
+        
+        return $breadcrumb;
     }
 }

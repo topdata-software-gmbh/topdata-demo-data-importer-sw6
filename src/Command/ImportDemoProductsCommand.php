@@ -144,17 +144,36 @@ class ImportDemoProductsCommand extends AbstractTopdataCommand
             $categoryMap[$category->getId()] = $category;
         }
 
-        $choices = [];
+        // Prepare an array to hold category data for sorting
+        $categoriesData = [];
         foreach ($categories as $category) {
             /** @var CategoryEntity $category */
             $breadcrumb = $this->buildBreadcrumb($category, $categoryMap);
+            $depth = count($breadcrumb);
             $displayName = implode(' > ', $breadcrumb);
             
-            $choices[$category->getId()] = sprintf(
-                '%s (ID: %s)',
-                $displayName,
-                $category->getId()
-            );
+            $categoriesData[] = [
+                'category' => $category,
+                'breadcrumb' => $breadcrumb,
+                'depth' => $depth,
+                'displayName' => $displayName,
+            ];
+        }
+
+        // Sort categories by depth (shallowest first) and then by display name
+        usort($categoriesData, function($a, $b) {
+            // First, compare by depth
+            if ($a['depth'] !== $b['depth']) {
+                return $a['depth'] - $b['depth'];
+            }
+            // If same depth, compare by display name
+            return strcmp($a['displayName'], $b['displayName']);
+        });
+
+        $choices = [];
+        foreach ($categoriesData as $data) {
+            $category = $data['category'];
+            $choices[$category->getId()] = $data['displayName'];
         }
 
         $this->cliStyle->section('Category Selection');

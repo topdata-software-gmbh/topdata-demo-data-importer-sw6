@@ -14,7 +14,7 @@ This plugin provides tools to import and manage demo products in your Shopware 6
 For detailed documentation, see the [manual directory](manual/).
 
 ## Requirements
-- Shopware 6.5.*, 6.6.* or 6.7.*
+- Shopware 6.5, 6.6 or 6.7
 
 ## Installation
 1. Download the plugin

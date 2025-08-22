@@ -17,21 +17,35 @@
                         :disabled="isLoading"
                         @click="importDemoData"
                 >
-                    {{ $tc('TopdataDemoDataImporterSW6.importButton') }}
+                    {{ $t('TopdataDemoDataImporterSW6.importButton') }}
                 </sw-button>
 
+                &nbsp;
 
                 {# button to delete demo data #}
                 <sw-button
-                        variant="primary"
+                        variant="danger"
                         size="large"
                         :disabled="isLoading"
                         @click="removeDemoData"
                 >
-                    {{ $tc('TopdataDemoDataImporterSW6.removeButton') }}
+                    {{ $t('TopdataDemoDataImporterSW6.removeButton') }}
                 </sw-button>
 
 
+            </sw-card>
+
+            {# Results card showing processed products #}
+            <sw-card
+                    v-if="processedProducts && processedProducts.length > 0"
+                    :title="resultTitle"
+            >
+                <sw-data-grid
+                        :dataSource="processedProducts"
+                        :columns="productColumns"
+                        :show-selection="false"
+                        :show-actions="false"
+                />
             </sw-card>
         </sw-card-view>
     </template>

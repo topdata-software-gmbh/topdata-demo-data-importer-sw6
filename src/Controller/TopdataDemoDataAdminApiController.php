@@ -56,15 +56,29 @@ class TopdataDemoDataAdminApiController extends AbstractController
     {
         $criteria = new Criteria();
         $criteria->addFilter(new EqualsFilter('customFields.topdata_demo_data_importer_is_demo_product', true));
-        $demoProductIds = $this->productRepository->searchIds($criteria, Context::createDefaultContext())->getIds();
+        $demoProducts = $this->productRepository->search($criteria, Context::createDefaultContext())->getEntities();
+
+        $deletedProductsData = [];
+        $demoProductIds = [];
+
+        foreach ($demoProducts as $product) {
+            $deletedProductsData[] = [
+                'productNumber' => $product->getProductNumber(),
+                'name' => $product->getName(),
+                'ean' => $product->getEan(),
+                'mpn' => $product->getManufacturerNumber()
+            ];
+            $demoProductIds[] = $product->getId();
+        }
 
         if (!empty($demoProductIds)) {
             $this->productRepository->delete(array_map(fn($id) => ['id' => $id], $demoProductIds), Context::createDefaultContext());
         }
 
         return new JsonResponse([
-            'status'       => 'success',
-            'deletedCount' => count($demoProductIds)
+            'status' => 'success',
+            'deletedCount' => count($demoProductIds),
+            'deletedProducts' => $deletedProductsData
         ]);
     }
 }

@@ -12,6 +12,12 @@
         "removeConfirmText":      "Sind Sie sicher, dass Sie alle Demo-Produkte löschen möchten? Diese Aktion kann nicht rückgängig gemacht werden.",
         "removeErrorMessage":     "Fehler beim Löschen der Demo-Produkte",
         "removeSuccessMessage":   "Erfolgreich {count} Demo-Produkte gelöscht",
+        "resultsTitleImported":   "Importierte Produkte",
+        "resultsTitleRemoved":    "Gelöschte Produkte",
+        "columnProductNumber":    "Artikelnummer",
+        "columnName":             "Name",
+        "columnEan":              "EAN",
+        "columnMpn":              "Herst.-Art.-Nr.",
         "successMessage":         "Demo Daten wurden erfolgreich importiert",
         "successTitle":           "Erfolg"
     }

@@ -12,6 +12,12 @@
         "removeConfirmText":      "Are you sure you want to delete all demo products? This action cannot be undone.",
         "removeErrorMessage":     "An error occurred while deleting demo products",
         "removeSuccessMessage":   "Successfully deleted {count} demo products",
+        "resultsTitleImported":   "Imported Products",
+        "resultsTitleRemoved":    "Deleted Products",
+        "columnProductNumber":    "Product Number",
+        "columnName":             "Name",
+        "columnEan":              "EAN",
+        "columnMpn":              "MPN",
         "successMessage":         "Demo data has been imported successfully",
         "successTitle":           "Success"
     }

@@ -89,14 +89,14 @@ Update the Vue component's Javascript to manage the state for the results table 
 
 1.  In the `data()` method, add two new properties: `processedProducts: []` and `resultTitle: ''`.
 2.  Add a `computed` property section to the component.
-3.  Inside `computed`, create a method `productColumns()` that returns an array of column definitions for the data grid. Each column object should have `property`, `label` (using `$tc` with the new snippets), and `allowResize: true`.
+3.  Inside `computed`, create a method `productColumns()` that returns an array of column definitions for the data grid. Each column object should have `property`, `label` (using `$t` with the new snippets), and `allowResize: true`.
 4.  In the `importDemoData` method, before the API call, reset `this.processedProducts = []` and `this.resultTitle = ''`.
 5.  In the `.then()` block of `importDemoData`, if `response.importedProducts.length > 0`:
     *   Assign the product list: `this.processedProducts = response.importedProducts;`
-    *   Set the title: `this.resultTitle = this.$tc('TopdataDemoDataImporterSW6.resultsTitleImported');`
+    *   Set the title: `this.resultTitle = this.$t('TopdataDemoDataImporterSW6.resultsTitleImported');`
 6.  In the `removeDemoData` method, before the API call, reset `this.processedProducts = []` and `this.resultTitle = ''`.
 7.  In the `.then()` block of `removeDemoData`, if `response.deletedCount > 0`:
     *   Assign the product list: `this.processedProducts = response.deletedProducts;`
-    *   Set the title: `this.resultTitle = this.$tc('TopdataDemoDataImporterSW6.resultsTitleRemoved');`
+    *   Set the title: `this.resultTitle = this.$t('TopdataDemoDataImporterSW6.resultsTitleRemoved');`
 
 

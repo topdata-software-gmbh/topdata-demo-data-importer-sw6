@@ -19,6 +19,10 @@ use Topdata\TopdataFoundationSW6\Command\AbstractTopdataCommand;
 /**
  * Command to remove all demo products created by this plugin.
  *
+ * This command provides functionality to remove demo products that were imported by the TopdataDemoDataImporterSW6 plugin.
+ * It searches for products marked as demo products via a custom field and allows the user to delete them,
+ * with an option to force deletion without confirmation.
+ *
  * 07/2025 created
  */
 #[AsCommand(
@@ -27,17 +31,30 @@ use Topdata\TopdataFoundationSW6\Command\AbstractTopdataCommand;
 )]
 class RemoveDemoProductsCommand extends AbstractTopdataCommand
 {
+    /**
+     * @param EntityRepository $productRepository
+     */
     public function __construct(
         private readonly EntityRepository $productRepository
     ) {
         parent::__construct();
     }
 
+    /**
+     * Configures the command by defining available options.
+     */
     protected function configure(): void
     {
         $this->addOption('force', 'f', InputOption::VALUE_NONE, 'Do not ask for confirmation and delete products immediately.');
     }
 
+    /**
+     * Executes the command to remove demo products.
+     *
+     * @param InputInterface $input
+     * @param OutputInterface $output
+     * @return int
+     */
     public function execute(InputInterface $input, OutputInterface $output): int
     {
         $context = Context::createDefaultContext();
@@ -45,7 +62,7 @@ class RemoveDemoProductsCommand extends AbstractTopdataCommand
         $criteria = new Criteria();
         $criteria->addFilter(new EqualsFilter('customFields.' . TopdataDemoDataImporterSW6::CUSTOM_FIELD_IS_DEMO_PRODUCT, true));
 
-        // Fetch full product details instead of just IDs
+        // ---- Fetch full product details instead of just IDs
         $criteria->addAssociation('manufacturer');
         $products = $this->productRepository->search($criteria, $context);
 
@@ -57,7 +74,7 @@ class RemoveDemoProductsCommand extends AbstractTopdataCommand
 
         $this->cliStyle->warning(sprintf('%d demo products will be permanently deleted.', $products->getTotal()));
 
-        // Display table of products to be removed
+        // ---- Display table of products to be removed
         $this->cliStyle->section('Products to be removed');
         
         $tableHeaders = ['Product Number', 'Name', 'EAN', 'MPN'];
@@ -81,7 +98,7 @@ class RemoveDemoProductsCommand extends AbstractTopdataCommand
             return Command::FAILURE;
         }
 
-        // Extract IDs for deletion
+        // ---- Extract IDs for deletion
         $idsToDelete = array_values(array_map(static fn ($product) => ['id' => $product->getId()], $products->getEntities()->getElements()));
         $this->productRepository->delete($idsToDelete, $context);
 

@@ -7,7 +7,8 @@ namespace Topdata\TopdataDemoDataImporterSW6\Service;
 use Topdata\TopdataDemoDataImporterSW6\Service\ProductService;
 
 /**
- * Handles the import of demo data from a CSV file.
+ * This service handles the import of demo data from a CSV file into the Shopware 6 system.
+ * It reads product information from the CSV, transforms it, and uses the ProductService to create products.
  * 07/2024 created (extracted from ProductService)
  */
 class DemoDataImportService
@@ -26,12 +27,12 @@ class DemoDataImportService
     }
 
     /**
-     * Installs demo data from a CSV file.
+     * Imports demo data from a CSV file and creates products in Shopware 6.
      * 10/2024 extracted from ProductService
      *
      * @param string $filename The name of the CSV file to import. Defaults to 'demo-products.csv'.
      * @param string|null $categoryId Optional category ID to assign products to.
-     * @return array An array containing the import status and additional information.
+     * @return array An array containing the import status and additional information about the import process.
      */
     public function installDemoData(string $filename = 'demo-products.csv', ?string $categoryId = null): array
     {

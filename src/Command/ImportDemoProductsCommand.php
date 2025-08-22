@@ -19,6 +19,8 @@ use Topdata\TopdataFoundationSW6\Command\AbstractTopdataCommand;
 
 /**
  * Command to import products from a CSV file into Shopware 6
+ * This command allows importing demo products into a Shopware 6 instance,
+ * providing options to specify a category or import without category assignment.
  *
  * 11/2024 created
  */
@@ -36,6 +38,9 @@ class ImportDemoProductsCommand extends AbstractTopdataCommand
         parent::__construct();
     }
 
+    /**
+     * Configures the command with options for forcing the import, specifying a category ID, and importing without a category.
+     */
     protected function configure(): void
     {
         $this->addOption('force', 'f', InputOption::VALUE_NONE, 'Do not ask for confirmation and import products immediately.');
@@ -43,6 +48,13 @@ class ImportDemoProductsCommand extends AbstractTopdataCommand
         $this->addOption('no-category', null, InputOption::VALUE_NONE, 'Import products without assigning them to any category');
     }
 
+    /**
+     * Executes the command to import demo products.
+     *
+     * @param InputInterface $input The input interface.
+     * @param OutputInterface $output The output interface.
+     * @return int 0 if everything went fine, or an error code.
+     */
     public function execute(InputInterface $input, OutputInterface $output): int
     {
         $this->cliStyle->warning('This will import demo products into your shop.');
@@ -55,7 +67,7 @@ class ImportDemoProductsCommand extends AbstractTopdataCommand
             return Command::FAILURE;
         }
         
-        // Interactive category selection when no category options are provided
+        // ---- Interactive category selection when no category options are provided
         if ($categoryId === null && !$noCategory) {
             $categoryId = $this->_getCategoryFromInteractiveChoice();
             if ($categoryId === null) {
@@ -70,8 +82,10 @@ class ImportDemoProductsCommand extends AbstractTopdataCommand
             return Command::FAILURE;
         }
 
+        // ---- Import demo data using the DemoDataImportService
         $result = $this->demoDataImportService->installDemoData('demo-products.csv', $categoryId);
 
+        // ---- Display imported products in a table
         if (isset($result['importedProducts']) && is_array($result['importedProducts'])) {
             $this->cliStyle->section('Imported Articles');
             
@@ -111,7 +125,10 @@ class ImportDemoProductsCommand extends AbstractTopdataCommand
     }
 
     /**
-     * Get category name by ID
+     * Get category name by ID.
+     *
+     * @param string $categoryId The ID of the category.
+     * @return string|null The name of the category, or null if not found.
      */
     private function getCategoryName(string $categoryId): ?string
     {
@@ -122,7 +139,9 @@ class ImportDemoProductsCommand extends AbstractTopdataCommand
     }
 
     /**
-     * Interactive category selection helper
+     * Interactively retrieves a category ID from the user via a console choice.
+     *
+     * @return string|null The selected category ID, or null if no category was selected.
      */
     private function _getCategoryFromInteractiveChoice(): ?string
     {
@@ -138,13 +157,13 @@ class ImportDemoProductsCommand extends AbstractTopdataCommand
             return null;
         }
 
-        // Build category tree for breadcrumb generation
+        // ---- Build category tree for breadcrumb generation
         $categoryMap = [];
         foreach ($categories as $category) {
             $categoryMap[$category->getId()] = $category;
         }
 
-        // Prepare an array to hold category data for sorting
+        // ---- Prepare an array to hold category data for sorting
         $categoriesData = [];
         foreach ($categories as $category) {
             /** @var CategoryEntity $category */
@@ -160,7 +179,7 @@ class ImportDemoProductsCommand extends AbstractTopdataCommand
             ];
         }
 
-        // Sort categories by depth (shallowest first) and then by display name
+        // ---- Sort categories by depth (shallowest first) and then by display name
         usort($categoriesData, function($a, $b) {
             // First, compare by depth
             if ($a['depth'] !== $b['depth']) {
@@ -189,22 +208,22 @@ class ImportDemoProductsCommand extends AbstractTopdataCommand
     }
 
     /**
-     * Build breadcrumb path for a category
+     * Builds a breadcrumb path for a given category based on its parent categories.
      *
-     * @param CategoryEntity $category
-     * @param array<string, CategoryEntity> $categoryMap
-     * @return string[]
+     * @param CategoryEntity $category The category to build the breadcrumb for.
+     * @param array<string, CategoryEntity> $categoryMap An array of categories, indexed by their IDs.
+     * @return string[] The breadcrumb path as an array of category names.
      */
     private function buildBreadcrumb(CategoryEntity $category, array $categoryMap): array
     {
         $breadcrumb = [];
         $current = $category;
         
-        // Build breadcrumb from current category up to root
+        // ---- Build breadcrumb from current category up to root
         while ($current !== null) {
             array_unshift($breadcrumb, $current->getName() ?? 'Unnamed Category');
             
-            // Check if parent exists in our loaded categories
+            // ---- Check if parent exists in our loaded categories
             $parentId = $current->getParentId();
             if ($parentId && isset($categoryMap[$parentId])) {
                 $current = $categoryMap[$parentId];

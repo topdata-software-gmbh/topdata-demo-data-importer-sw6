@@ -16,6 +16,8 @@ use Topdata\TopdataFoundationSW6\Command\AbstractTopdataCommand;
 use Topdata\TopdataFoundationSW6\Service\PluginHelperService;
 
 /**
+ * This command allows to set the demo credentials for the Topdata webservice connector.
+ * It updates the system configuration with the demo credentials.
  * 11/2024 created
  */
 #[AsCommand(
@@ -34,6 +36,9 @@ class UseWebserviceDemoCredentialsCommand extends AbstractTopdataCommand
         parent::__construct();
     }
 
+    /**
+     * Deletes existing Topdata webservice credentials from the system_config table.
+     */
     private function _deleteExistingCredentials(): void
     {
         $this->connection->executeStatement(
@@ -49,6 +54,9 @@ class UseWebserviceDemoCredentialsCommand extends AbstractTopdataCommand
         ]);
     }
 
+    /**
+     * Inserts the demo credentials into the system_config table.
+     */
     private function _insertCredentials(): void
     {
         $now = (new \DateTime())->format(Defaults::STORAGE_DATE_TIME_FORMAT);
@@ -83,11 +91,17 @@ class UseWebserviceDemoCredentialsCommand extends AbstractTopdataCommand
         }
     }
 
+    /**
+     * Configures the command by adding the `force` option.
+     */
     protected function configure(): void
     {
         $this->addOption('force', 'f', InputOption::VALUE_NONE, 'Force overriding of credentials that already exist in the database');
     }
 
+    /**
+     * Checks if Topdata webservice credentials already exist in the system_config table.
+     */
     private function _doCredentialsExist(): bool
     {
 
@@ -109,7 +123,13 @@ class UseWebserviceDemoCredentialsCommand extends AbstractTopdataCommand
         return $existingCount > 0;
     }
 
-
+    /**
+     * Executes the command to set the demo credentials for the Topdata webservice connector.
+     *
+     * @param InputInterface $input The input interface.
+     * @param OutputInterface $output The output interface.
+     * @return int 0 if everything went fine, or an error code.
+     */
     public function execute(InputInterface $input, OutputInterface $output): int
     {
         $force = (bool)$input->getOption('force');
@@ -126,9 +146,11 @@ class UseWebserviceDemoCredentialsCommand extends AbstractTopdataCommand
                 $this->cliStyle->error('Credentials already exist. Use --force to override.');
                 return Command::FAILURE;
             }
+            // ---- delete existing credentials if force option is used
             $this->_deleteExistingCredentials();
         }
 
+        // ---- insert the demo credentials
         $this->_insertCredentials();
 
         $this->cliStyle->success('Credentials set');

@@ -21,6 +21,6 @@ export default class DemoDataApiService {
      * @returns {Promise} - A promise that resolves with the API response.
      */
     installDemoData(): Promise<any> {
-        return this.client.get('/topdata-demo-data/install-demodata');
+        return this.client.post('/topdata-demo-data/install-demodata', {});
     }
 }

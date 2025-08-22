@@ -8,15 +8,21 @@ use RuntimeException;
 use Topdata\TopdataDemoDataImporterSW6\DTO\CsvConfiguration;
 
 /**
- * Service for reading products from CSV files
- * 11/2024 created
+ * Service for reading product data from CSV files.
+ * This class handles file reading, parsing, and mapping CSV data to a product array.
+ * 07/2024 created
  */
 class ProductCsvReader
 {
     /**
-     * Read products from a CSV file
+     * Reads product data from a CSV file based on the provided configuration.
      *
-     * @throws RuntimeException if file cannot be read or is invalid
+     * @param string $filePath The path to the CSV file.
+     * @param CsvConfiguration $config The configuration for reading the CSV file.
+     *
+     * @return array An array of products, where the key is the product number.
+     *
+     * @throws RuntimeException if the file cannot be read or is invalid.
      */
     public function readProducts(string $filePath, CsvConfiguration $config): array
     {
@@ -37,7 +43,14 @@ class ProductCsvReader
     }
 
     /**
-     * @throws RuntimeException if required columns are missing
+     * Processes the CSV file handle and extracts product data.
+     *
+     * @param resource $handle The file handle for the CSV file.
+     * @param CsvConfiguration $config The configuration for reading the CSV file.
+     *
+     * @return array An array of products, where the key is the product number.
+     *
+     * @throws RuntimeException if required columns are missing.
      */
     private function processFile($handle, CsvConfiguration $config): array
     {
@@ -48,19 +61,23 @@ class ProductCsvReader
         while (($line = fgets($handle)) !== false) {
             $lineNumber++;
 
+            // ---- Skip lines before the start line
             if ($lineNumber < $config->getStartLine()) {
                 continue;
             }
 
+            // ---- Break if the end line is reached
             if ($config->getEndLine() !== null && $lineNumber > $config->getEndLine()) {
                 break;
             }
 
+            // ---- Extract values from the line
             $values = array_map(
                 fn($val) => trim($val, $config->getEnclosure()),
                 explode($config->getDelimiter(), $line)
             );
 
+            // ---- Skip lines without required columns
             if (!isset($values[$mapping['number']]) || !isset($values[$mapping['name']])) {
                 continue;
             }
@@ -71,6 +88,14 @@ class ProductCsvReader
         return $products;
     }
 
+    /**
+     * Maps a single row of CSV data to a product array.
+     *
+     * @param array $values The array of values from the CSV row.
+     * @param array $mapping The mapping of CSV columns to product fields.
+     *
+     * @return array An array representing a single product.
+     */
     private function mapRowToProduct(array $values, array $mapping): array
     {
         $product = [
@@ -78,7 +103,7 @@ class ProductCsvReader
             'name'          => $values[$mapping['name']],
         ];
 
-        // Optional fields
+        // ---- Optional fields
         $optionalFields = [
             'wsid'        => 'topDataId',
             'description' => 'description',
@@ -87,6 +112,7 @@ class ProductCsvReader
             'brand'       => 'brand'
         ];
 
+        // ---- Map optional fields if they exist
         foreach ($optionalFields as $csvField => $productField) {
             if (isset($mapping[$csvField]) && isset($values[$mapping[$csvField]])) {
                 $product[$productField] = $values[$mapping[$csvField]];

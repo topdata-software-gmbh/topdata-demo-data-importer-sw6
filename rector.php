@@ -1,11 +1,11 @@
 <?php
 
 /**
- * This file is a config file for rector
+ * Configuration file for Rector.
  *
- * This script configures the rules and sets for the rector process.
+ * This script configures the rules and sets for the Rector process,
+ * defining which code transformations should be applied to the codebase.
  */
-
 declare(strict_types=1);
 
 use Rector\CodeQuality\Rector\BooleanAnd\RemoveUselessIsObjectCheckRector;

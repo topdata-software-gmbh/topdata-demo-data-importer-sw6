@@ -9,8 +9,8 @@ import DemoDataApiService from './service/DemoDataApiService';
 Shopware.Module.register('topdata-demo-data', {
     type: 'plugin',
     name: 'Topdata Demo Data',
-    title: 'topdata-demo-data.general.mainMenuTitle',
-    description: 'topdata-demo-data.general.descriptionTextModule',
+    title: 'TopdataDemoDataImporterSW6.mainMenuTitle',
+    description: 'TopdataDemoDataImporterSW6.descriptionTextModule',
     color: '#ff3d58',
 
     // Define the available routes for this module
@@ -23,7 +23,7 @@ Shopware.Module.register('topdata-demo-data', {
 
     // Configure the menu entry in the administration
     navigation: [{
-        label: 'topdata-demo-data.general.mainMenuTitle',
+        label: 'TopdataDemoDataImporterSW6.mainMenuTitle',
         color: '#ff3d58',
         path: 'topdata.demo.data.index',
         icon: 'regular-database',

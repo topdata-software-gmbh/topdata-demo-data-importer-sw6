@@ -23,4 +23,16 @@ export default class DemoDataApiService {
     installDemoData(): Promise<any> {
         return this.client.post('/topdata-demo-data/install-demodata', {});
     }
+
+    /**
+     * Removes demo data via the API.
+     * @returns {Promise<{ status: string; deletedCount: number }>} - A promise that resolves with the API response containing status and deleted count.
+     */
+    removeDemoData(): Promise<{ status: string; deletedCount: number }> {
+        return this.client
+            .post('/topdata-demo-data/remove-demodata', {})
+            .then((response: { data: { status: string; deletedCount: number } }) => {
+                return response.data;
+            });
+    }
 }

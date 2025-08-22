@@ -1,13 +1,18 @@
 {
-    "topdata-demo-data": {
-        "general": {
-            "mainMenuTitle": "Topdata Demo Data",
-            "descriptionTextModule": "Import demo data",
-            "importButton": "Import Demo Data",
-            "successTitle": "Success",
-            "successMessage": "Demo data has been imported successfully",
-            "errorTitle": "Error",
-            "errorMessage": "An error occurred while importing demo data"
-        }
+    "TopdataDemoDataImporterSW6": {
+        "descriptionTextModule":  "Import demo data",
+        "errorMessage":           "An error occurred while importing demo data",
+        "errorTitle":             "Error",
+        "importButton":           "Import Demo Data",
+        "importedMessage":        "Successfully imported {count} demo products",
+        "mainMenuTitle":          "Topdata Demo Data",
+        "nothingToImportMessage": "No new demo products to import",
+        "nothingToRemoveMessage": "No demo products found to delete",
+        "removeButton":           "Delete Demo Data",
+        "removeConfirmText":      "Are you sure you want to delete all demo products? This action cannot be undone.",
+        "removeErrorMessage":     "An error occurred while deleting demo products",
+        "removeSuccessMessage":   "Successfully deleted {count} demo products",
+        "successMessage":         "Demo data has been imported successfully",
+        "successTitle":           "Success"
     }
 }

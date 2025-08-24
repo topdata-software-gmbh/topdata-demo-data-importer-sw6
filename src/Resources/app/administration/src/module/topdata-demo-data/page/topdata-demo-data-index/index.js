@@ -4,9 +4,14 @@
  */
 
 import template from './topdata-demo-data-index.html.twig';
+import { notification } from 'src/core/mixin/notification.mixin';
 
 Shopware.Component.register('topdata-demo-data-index', {
     template,
+
+    mixins: [
+        notification
+    ],
 
     inject: ['TopdataDemoDataApiService'],
 

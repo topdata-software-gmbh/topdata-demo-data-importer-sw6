@@ -98,6 +98,7 @@ Shopware.Component.register('topdata-demo-data-index', {
                 
                 this.TopdataDemoDataApiService.removeDemoData()
                     .then(response => {
+                        console.log(response);
                         if (response.deletedCount > 0) {
                             this.processedProducts = response.deletedProducts;
                             this.resultTitle = this.$t('TopdataDemoDataImporterSW6.resultsTitleRemoved');

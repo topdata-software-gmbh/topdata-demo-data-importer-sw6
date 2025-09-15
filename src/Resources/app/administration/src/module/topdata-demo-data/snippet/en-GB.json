@@ -8,6 +8,7 @@
         "mainMenuTitle":          "Topdata Demo Data",
         "nothingToImportMessage": "No new demo products to import",
         "nothingToRemoveMessage": "No demo products found to delete",
+        "importErrorMessage":     "An error occurred while importing demo products",
         "removeButton":           "Delete Demo Data",
         "removeConfirmText":      "Are you sure you want to delete all demo products? This action cannot be undone.",
         "removeErrorMessage":     "An error occurred while deleting demo products",

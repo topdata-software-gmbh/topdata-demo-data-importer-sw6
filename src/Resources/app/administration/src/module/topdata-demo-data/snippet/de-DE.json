@@ -8,6 +8,7 @@
         "mainMenuTitle":          "Topdata Demo Daten",
         "nothingToImportMessage": "Keine neuen Demo-Produkte zum Importieren",
         "nothingToRemoveMessage": "Keine Demo-Produkte zum Löschen gefunden",
+        "importErrorMessage":     "Beim Importieren der Demo-Produkte ist ein Fehler aufgetreten",
         "removeButton":           "Demo-Daten löschen",
         "removeConfirmText":      "Sind Sie sicher, dass Sie alle Demo-Produkte löschen möchten? Diese Aktion kann nicht rückgängig gemacht werden.",
         "removeErrorMessage":     "Fehler beim Löschen der Demo-Produkte",

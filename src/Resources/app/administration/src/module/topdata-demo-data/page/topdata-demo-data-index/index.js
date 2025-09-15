@@ -56,70 +56,66 @@ Shopware.Component.register('topdata-demo-data-index', {
          * Triggers the demo data import via AJAX
          * Shows loading state and handles success/error notifications
          */
-        importDemoData() {
+        async importDemoData() {
             this.isLoading = true;
             this.processedProducts = [];
             this.resultTitle = '';
-            
-            this.TopdataDemoDataApiService.installDemoData()
-                .then(response => {
-                    if (response.importedProducts && response.importedProducts.length > 0) {
-                        this.processedProducts = response.importedProducts;
-                        this.resultTitle = this.$t('TopdataDemoDataImporterSW6.resultsTitleImported');
-                        this.createNotificationSuccess({
-                            message: this.$t('TopdataDemoDataImporterSW6.importedMessage', response.importedCount)
-                        });
-                    } else {
-                        this.createNotificationInfo({
-                            message: this.$t('TopdataDemoDataImporterSW6.nothingToImportMessage')
-                        });
-                    }
-                })
-                .catch(error => {
-                    this.createNotificationError({
-                        message: this.$t('TopdataDemoDataImporterSW6.importErrorMessage')
+
+            try {
+                const response = await this.TopdataDemoDataApiService.installDemoData();
+                if (response && response.importedProducts && response.importedProducts.length > 0) {
+                    this.processedProducts = response.importedProducts;
+                    this.resultTitle = this.$t('TopdataDemoDataImporterSW6.resultsTitleImported');
+                    this.createNotificationSuccess({
+                        message: this.$t('TopdataDemoDataImporterSW6.importedMessage', { count: response.importedProducts.length })
                     });
-                    console.error(error);
-                })
-                .finally(() => {
-                    this.isLoading = false;
+                } else {
+                    this.createNotificationInfo({
+                        message: this.$t('TopdataDemoDataImporterSW6.nothingToImportMessage')
+                    });
+                }
+            } catch (error) {
+                this.createNotificationError({
+                    message: this.$t('TopdataDemoDataImporterSW6.importErrorMessage')
                 });
+                console.error(error);
+            } finally {
+                this.isLoading = false;
+            }
         },
 
         /**
          * Triggers the removal of demo data
          * Shows confirmation dialog and handles success/error notifications
          */
-        removeDemoData() {
+        async removeDemoData() {
             if (confirm(this.$t('TopdataDemoDataImporterSW6.removeConfirmText'))) {
                 this.isLoading = true;
                 this.processedProducts = [];
                 this.resultTitle = '';
-                
-                this.TopdataDemoDataApiService.removeDemoData()
-                    .then(response => {
-                        console.log(response);
-                        if (response.deletedCount > 0) {
-                            this.processedProducts = response.deletedProducts;
-                            this.resultTitle = this.$t('TopdataDemoDataImporterSW6.resultsTitleRemoved');
-                            this.createNotificationSuccess({
-                                message: this.$t('TopdataDemoDataImporterSW6.removeSuccessMessage', response.deletedCount)
-                            });
-                        } else {
-                            this.createNotificationInfo({
-                                message: this.$t('TopdataDemoDataImporterSW6.nothingToRemoveMessage')
-                            });
-                        }
-                    })
-                    .catch(error => {
-                        this.createNotificationError({
-                            message: this.$t('TopdataDemoDataImporterSW6.removeErrorMessage')
+
+                try {
+                    const response = await this.TopdataDemoDataApiService.removeDemoData();
+                    console.log(response);
+                    if (response && response.deletedCount > 0) {
+                        this.processedProducts = response.deletedProducts;
+                        this.resultTitle = this.$t('TopdataDemoDataImporterSW6.resultsTitleRemoved');
+                        this.createNotificationSuccess({
+                            message: this.$t('TopdataDemoDataImporterSW6.removeSuccessMessage', { count: response.deletedCount })
                         });
-                        console.error(error);
-                    })
-                    .finally(() => {
-                        this.isLoading = false;
+                    } else {
+                        this.createNotificationInfo({
+                            message: this.$t('TopdataDemoDataImporterSW6.nothingToRemoveMessage')
+                        });
+                    }
+                } catch (error) {
+                    this.createNotificationError({
+                        message: this.$t('TopdataDemoDataImporterSW6.removeErrorMessage')
                     });
+                    console.error(error);
+                } finally {
+                    this.isLoading = false;
+                }
             }
         },
 

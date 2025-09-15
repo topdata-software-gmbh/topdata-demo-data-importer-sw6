@@ -20,23 +20,17 @@ export default class DemoDataApiService {
      * Installs demo data via the API.
      * @returns {Promise} - A promise that resolves with the API response.
      */
-    installDemoData(): Promise<any> {
-        return this.client
-            .post('/topdata-demo-data/install-demodata', {})
-            .then((response: { data: any }) => {
-                return response.data;
-            });
+    async installDemoData(): Promise<any> {
+        const response = await this.client.post('/topdata-demo-data/install-demodata', {});
+        return response.data || response;
     }
 
     /**
      * Removes demo data via the API.
      * @returns {Promise<{ status: string; deletedCount: number; deletedProducts: Array<any> }>} - A promise that resolves with the API response containing status, deleted count, and deleted products.
      */
-    removeDemoData(): Promise<{ status: string; deletedCount: number; deletedProducts: Array<any> }> {
-        return this.client
-            .post('/topdata-demo-data/remove-demodata', {})
-            .then((response: { data: { status: string; deletedCount: number; deletedProducts: Array<any> } }) => {
-                return response.data;
-            });
+    async removeDemoData(): Promise<{ status: string; deletedCount: number; deletedProducts: Array<any> }> {
+        const response = await this.client.post('/topdata-demo-data/remove-demodata', {});
+        return response.data || response;
     }
 }

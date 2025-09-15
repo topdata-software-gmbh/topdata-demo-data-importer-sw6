@@ -3,13 +3,12 @@
 <sw-page class="topdata-demo-data-index">
     <template #content>
         <sw-card-view>
-            {# Main card containing the import button #}
+            {# Main card containing the action buttons #}
             <sw-card
                     :isLoading="isLoading"
                     :large="true"
+                    :title="$t('TopdataDemoDataImporterSW6.mainCardTitle')"
             >
-
-
                 {# button to import demo data #}
                 <sw-button
                         variant="primary"
@@ -26,26 +25,29 @@
                 <sw-button
                         variant="danger"
                         size="large"
-                        :disabled="isLoading"
+                        :disabled="isLoading || !hasDemoProducts"
                         @click="removeDemoData"
                 >
                     {{ $t('TopdataDemoDataImporterSW6.removeButton') }}
                 </sw-button>
-
-
             </sw-card>
 
-            {# Results card showing processed products #}
+            {# Results card showing existing products #}
             <sw-card
-                    v-if="processedProducts && processedProducts.length > 0"
-                    :title="resultTitle"
+                    v-if="hasDemoProducts && !isLoading"
+                    :title="$t('TopdataDemoDataImporterSW6.resultsTitleExisting', { count: totalProducts })"
             >
                 <sw-data-grid
-                        :dataSource="processedProducts"
+                        :dataSource="currentProducts"
                         :columns="productColumns"
                         :show-selection="false"
                         :show-actions="false"
                 />
+            </sw-card>
+
+            {# Card for when no demo products are found #}
+            <sw-card v-if="!hasDemoProducts && !isLoading">
+                <p>{{ $t('TopdataDemoDataImporterSW6.noProductsMessage') }}</p>
             </sw-card>
         </sw-card-view>
     </template>

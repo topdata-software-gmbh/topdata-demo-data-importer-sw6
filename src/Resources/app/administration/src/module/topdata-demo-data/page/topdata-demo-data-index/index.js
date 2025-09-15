@@ -19,9 +19,13 @@ Shopware.Component.register('topdata-demo-data-index', {
     data() {
         return {
             isLoading: false,
-            processedProducts: [],
-            resultTitle: ''
+            currentProducts: [],
+            totalProducts: 0,
         };
+    },
+
+    created() {
+        this.fetchDemoDataStatus();
     },
 
     computed: {
@@ -48,24 +52,43 @@ Shopware.Component.register('topdata-demo-data-index', {
                     allowResize: true
                 }
             ];
+        },
+
+        hasDemoProducts() {
+            return this.totalProducts > 0;
         }
     },
 
     methods: {
+        /**
+         * Fetches the current demo data status from the backend
+         */
+        async fetchDemoDataStatus() {
+            this.isLoading = true;
+            try {
+                const { count, products } = await this.TopdataDemoDataApiService.getStatus();
+                this.totalProducts = count;
+                this.currentProducts = products;
+            } catch (error) {
+                this.createNotificationError({
+                    message: this.$t('TopdataDemoDataImporterSW6.statusErrorMessage')
+                });
+                console.error(error);
+            } finally {
+                this.isLoading = false;
+            }
+        },
+
         /**
          * Triggers the demo data import via AJAX
          * Shows loading state and handles success/error notifications
          */
         async importDemoData() {
             this.isLoading = true;
-            this.processedProducts = [];
-            this.resultTitle = '';
 
             try {
                 const response = await this.TopdataDemoDataApiService.installDemoData();
                 if (response && response.importedProducts && response.importedProducts.length > 0) {
-                    this.processedProducts = response.importedProducts;
-                    this.resultTitle = this.$t('TopdataDemoDataImporterSW6.resultsTitleImported');
                     this.createNotificationSuccess({
                         message: this.$t('TopdataDemoDataImporterSW6.importedMessage', { count: response.importedProducts.length })
                     });
@@ -80,7 +103,7 @@ Shopware.Component.register('topdata-demo-data-index', {
                 });
                 console.error(error);
             } finally {
-                this.isLoading = false;
+                await this.fetchDemoDataStatus();
             }
         },
 
@@ -91,15 +114,10 @@ Shopware.Component.register('topdata-demo-data-index', {
         async removeDemoData() {
             if (confirm(this.$t('TopdataDemoDataImporterSW6.removeConfirmText'))) {
                 this.isLoading = true;
-                this.processedProducts = [];
-                this.resultTitle = '';
 
                 try {
                     const response = await this.TopdataDemoDataApiService.removeDemoData();
-                    console.log(response);
                     if (response && response.deletedCount > 0) {
-                        this.processedProducts = response.deletedProducts;
-                        this.resultTitle = this.$t('TopdataDemoDataImporterSW6.resultsTitleRemoved');
                         this.createNotificationSuccess({
                             message: this.$t('TopdataDemoDataImporterSW6.removeSuccessMessage', { count: response.deletedCount })
                         });
@@ -114,7 +132,7 @@ Shopware.Component.register('topdata-demo-data-index', {
                     });
                     console.error(error);
                 } finally {
-                    this.isLoading = false;
+                    await this.fetchDemoDataStatus();
                 }
             }
         },

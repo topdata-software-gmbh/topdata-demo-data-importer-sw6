@@ -13,13 +13,15 @@
         "removeConfirmText":      "Sind Sie sicher, dass Sie alle Demo-Produkte löschen möchten? Diese Aktion kann nicht rückgängig gemacht werden.",
         "removeErrorMessage":     "Fehler beim Löschen der Demo-Produkte",
         "removeSuccessMessage":   "Erfolgreich {count} Demo-Produkte gelöscht",
-        "resultsTitleImported":   "Importierte Produkte",
-        "resultsTitleRemoved":    "Gelöschte Produkte",
         "columnProductNumber":    "Artikelnummer",
         "columnName":             "Name",
         "columnEan":              "EAN",
         "columnMpn":              "Herst.-Art.-Nr.",
         "successMessage":         "Demo Daten wurden erfolgreich importiert",
-        "successTitle":           "Erfolg"
+        "successTitle":           "Erfolg",
+        "mainCardTitle":          "Demo-Daten verwalten",
+        "resultsTitleExisting":   "Vorhandene Demo-Produkte ({count})",
+        "noProductsMessage":      "Es befinden sich aktuell keine Topdata Demo-Produkte im Shop.",
+        "statusErrorMessage":     "Der Status der Demo-Daten konnte nicht abgerufen werden."
     }
 }

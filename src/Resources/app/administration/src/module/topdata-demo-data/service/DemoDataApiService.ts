@@ -18,10 +18,19 @@ export default class DemoDataApiService {
 
     /**
      * Installs demo data via the API.
-     * @returns {Promise} - A promise that resolves with the API response.
+     * @returns {Promise<any>} - A promise that resolves with the API response.
      */
     async installDemoData(): Promise<any> {
         const response = await this.client.post('/topdata-demo-data/install-demodata', {});
+        return response.data || response;
+    }
+
+    /**
+     * Gets the current status of demo data.
+     * @returns {Promise<{ count: number; products: Array<any> }>} - A promise that resolves with the demo data status.
+     */
+    async getStatus(): Promise<{ count: number; products: Array<any> }> {
+        const response = await this.client.get('/topdata-demo-data/status');
         return response.data || response;
     }
 

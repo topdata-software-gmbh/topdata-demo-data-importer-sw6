@@ -14,11 +14,10 @@ use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 use Topdata\TopdataFoundationSW6\Command\AbstractTopdataCommand;
 use Topdata\TopdataFoundationSW6\Service\PluginHelperService;
+use Topdata\TopdataFoundationSW6\Util\CliLogger;
 
 /**
- * This command allows to set the demo credentials for the Topdata webservice connector.
- * It updates the system configuration with the demo credentials.
- * 11/2024 created
+ * Command for overwriting credentials in the configuration store to set up connections to the Topdata staging servers.
  */
 #[AsCommand(
     name: 'topdata:demo-data-importer:use-webservice-demo-credentials',
@@ -26,18 +25,58 @@ use Topdata\TopdataFoundationSW6\Service\PluginHelperService;
 )]
 class UseWebserviceDemoCredentialsCommand extends AbstractTopdataCommand
 {
-
-
     public function __construct(
         private readonly Connection          $connection,
         private readonly PluginHelperService $pluginHelperService
-    )
-    {
+    ) {
         parent::__construct();
     }
 
     /**
-     * Deletes existing Topdata webservice credentials from the system_config table.
+     * Standard flag configuration.
+     */
+    protected function configure(): void
+    {
+        $this->addOption('force', 'f', InputOption::VALUE_NONE, 'Force overriding of credentials that already exist in the database');
+    }
+
+    /**
+     * Initializes the console output adapter.
+     */
+    protected function initialize(InputInterface $input, OutputInterface $output): void
+    {
+        parent::initialize($input, $output);
+        CliLogger::setCliStyle($this->cliStyle);
+    }
+
+    /**
+     * Script routine to inject values.
+     */
+    public function execute(InputInterface $input, OutputInterface $output): int
+    {
+        $force = (bool)$input->getOption('force');
+
+        if (!$this->pluginHelperService->isWebserviceConnectorPluginAvailable()) {
+            CliLogger::error('The Topdata Webservice Connector plugin is not installed.');
+            return Command::FAILURE;
+        }
+
+        if ($this->_doCredentialsExist()) {
+            if (!$force) {
+                CliLogger::error('Credentials already exist. Use --force to override.');
+                return Command::FAILURE;
+            }
+            $this->_deleteExistingCredentials();
+        }
+
+        $this->_insertCredentials();
+        CliLogger::success('Credentials set');
+
+        return Command::SUCCESS;
+    }
+
+    /**
+     * Clears credentials config records.
      */
     private function _deleteExistingCredentials(): void
     {
@@ -55,15 +94,11 @@ class UseWebserviceDemoCredentialsCommand extends AbstractTopdataCommand
     }
 
     /**
-     * Inserts the demo credentials into the system_config table.
+     * Injects standard API configuration staging blocks.
      */
     private function _insertCredentials(): void
     {
         $now = (new \DateTime())->format(Defaults::STORAGE_DATE_TIME_FORMAT);
-
-        //    * API User ID: 6
-        //    * API Password: nTI9kbsniVWT13Ns
-        //    * API Security Key: oateouq974fpby5t6ldf8glzo85mr9t6aebozrox
 
         $configs = [
             [
@@ -92,20 +127,10 @@ class UseWebserviceDemoCredentialsCommand extends AbstractTopdataCommand
     }
 
     /**
-     * Configures the command by adding the `force` option.
-     */
-    protected function configure(): void
-    {
-        $this->addOption('force', 'f', InputOption::VALUE_NONE, 'Force overriding of credentials that already exist in the database');
-    }
-
-    /**
-     * Checks if Topdata webservice credentials already exist in the system_config table.
+     * Resolves whether relevant database settings are already present.
      */
     private function _doCredentialsExist(): bool
     {
-
-        // Check if any of the configs exist
         $existingCount = $this->connection->fetchOne(
             'SELECT COUNT(*) FROM system_config 
                 WHERE configuration_key IN (
@@ -122,40 +147,4 @@ class UseWebserviceDemoCredentialsCommand extends AbstractTopdataCommand
 
         return $existingCount > 0;
     }
-
-    /**
-     * Executes the command to set the demo credentials for the Topdata webservice connector.
-     *
-     * @param InputInterface $input The input interface.
-     * @param OutputInterface $output The output interface.
-     * @return int 0 if everything went fine, or an error code.
-     */
-    public function execute(InputInterface $input, OutputInterface $output): int
-    {
-        $force = (bool)$input->getOption('force');
-
-        // ---- check if the plugin is installed
-        if (!$this->pluginHelperService->isWebserviceConnectorPluginAvailable()) {
-            $this->cliStyle->error('The Topdata Webservice Connector plugin is not installed.');
-            return Command::FAILURE;
-        }
-
-        // ---- check if credentials already exist
-        if ($this->_doCredentialsExist()) {
-            if (!$force) {
-                $this->cliStyle->error('Credentials already exist. Use --force to override.');
-                return Command::FAILURE;
-            }
-            // ---- delete existing credentials if force option is used
-            $this->_deleteExistingCredentials();
-        }
-
-        // ---- insert the demo credentials
-        $this->_insertCredentials();
-
-        $this->cliStyle->success('Credentials set');
-
-        return Command::SUCCESS;
-    }
-
 }

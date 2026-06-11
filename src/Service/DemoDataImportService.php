@@ -4,12 +4,8 @@ declare(strict_types=1);
 
 namespace Topdata\TopdataDemoDataImporterSW6\Service;
 
-use Topdata\TopdataDemoDataImporterSW6\Service\DemoProductService;
-
 /**
- * This service handles the import of demo data from a CSV file into the Shopware 6 system.
- * It reads product information from the CSV, transforms it, and uses the ProductService to create products.
- * 07/2024 created (extracted from ProductService)
+ * High-level orchestration service reading and importing bundled product configurations.
  */
 class DemoDataImportService
 {
@@ -22,17 +18,11 @@ class DemoDataImportService
 
     public function __construct(
         private readonly DemoProductService $productService
-    )
-    {
+    ) {
     }
 
     /**
-     * Imports demo data from a CSV file and creates products in Shopware 6.
-     * 10/2024 extracted from ProductService
-     *
-     * @param string $filename The name of the CSV file to import. Defaults to 'demo-products.csv'.
-     * @param string|null $categoryId Optional category ID to assign products to.
-     * @return array An array containing the import status and additional information about the import process.
+     * Reads a predefined CSV file from the resources directory and imports the products.
      */
     public function installDemoData(string $filename = 'demo-products.csv', ?string $categoryId = null): array
     {
@@ -64,7 +54,6 @@ class DemoDataImportService
 
         $values = explode($this->divider, $line);
 
-        // ---- Determine column indices based on header row
         foreach ($values as $key => $val) {
             $val = trim($val);
             if ($val === 'article_no') {
@@ -111,7 +100,6 @@ class DemoDataImportService
 
         $products = [];
 
-        // ---- Read and process each line of the CSV file
         while (($line = fgets($handle)) !== false) {
             $values = explode($this->divider, $line);
             foreach ($values as $key => $val) {
@@ -127,7 +115,6 @@ class DemoDataImportService
 
         fclose($handle);
 
-        // ---- Clear existing products and format the product array
         $products = $this->productService->clearExistingProductsByProductNumber($products);
         if (count($products)) {
             $products = $this->productService->formProductsArray($products, 100000.0, $categoryId);
@@ -138,7 +125,6 @@ class DemoDataImportService
             ];
         }
 
-        // ---- Create the products
         $this->productService->createProducts($products);
 
         return [

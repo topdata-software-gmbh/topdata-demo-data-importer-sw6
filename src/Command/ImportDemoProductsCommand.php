@@ -8,7 +8,6 @@ use Shopware\Core\Content\Category\CategoryEntity;
 use Shopware\Core\Framework\DataAbstractionLayer\EntityRepository;
 use Shopware\Core\Framework\Context;
 use Shopware\Core\Framework\DataAbstractionLayer\Search\Criteria;
-use Shopware\Core\Framework\DataAbstractionLayer\Search\Sorting\FieldSorting;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
@@ -16,13 +15,10 @@ use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 use Topdata\TopdataDemoDataImporterSW6\Service\DemoDataImportService;
 use Topdata\TopdataFoundationSW6\Command\AbstractTopdataCommand;
+use Topdata\TopdataFoundationSW6\Util\CliLogger;
 
 /**
- * Command to import products from a CSV file into Shopware 6
- * This command allows importing demo products into a Shopware 6 instance,
- * providing options to specify a category or import without category assignment.
- *
- * 11/2024 created
+ * Command for importing the standard bundled product CSV dataset.
  */
 #[AsCommand(
     name: 'topdata:demo-data-importer:import-demo-products',
@@ -33,13 +29,12 @@ class ImportDemoProductsCommand extends AbstractTopdataCommand
     public function __construct(
         private readonly DemoDataImportService $demoDataImportService,
         private readonly EntityRepository $categoryRepository
-    )
-    {
+    ) {
         parent::__construct();
     }
 
     /**
-     * Configures the command with options for forcing the import, specifying a category ID, and importing without a category.
+     * Configures the input options.
      */
     protected function configure(): void
     {
@@ -49,45 +44,47 @@ class ImportDemoProductsCommand extends AbstractTopdataCommand
     }
 
     /**
-     * Executes the command to import demo products.
-     *
-     * @param InputInterface $input The input interface.
-     * @param OutputInterface $output The output interface.
-     * @return int 0 if everything went fine, or an error code.
+     * Links custom cliStyle output to the global CliLogger service wrapper.
+     */
+    protected function initialize(InputInterface $input, OutputInterface $output): void
+    {
+        parent::initialize($input, $output);
+        CliLogger::setCliStyle($this->cliStyle);
+    }
+
+    /**
+     * Core execution logic of the command.
      */
     public function execute(InputInterface $input, OutputInterface $output): int
     {
-        $this->cliStyle->warning('This will import demo products into your shop.');
+        CliLogger::warning('This will import demo products into your shop.');
         
         $categoryId = $input->getOption('category-id');
         $noCategory = $input->getOption('no-category');
         
         if ($categoryId !== null && $noCategory) {
-            $this->cliStyle->error('Options --category-id and --no-category cannot be used together.');
+            CliLogger::error('Options --category-id and --no-category cannot be used together.');
             return Command::FAILURE;
         }
         
-        // ---- Interactive category selection when no category options are provided
         if ($categoryId === null && !$noCategory) {
             $categoryId = $this->_getCategoryFromInteractiveChoice();
             if ($categoryId === null) {
-                $this->cliStyle->error('No category selected. Aborting.');
+                CliLogger::error('No category selected. Aborting.');
                 return Command::FAILURE;
             }
         }
         
         $force = $input->getOption('force');
-        if (!$force && !$this->cliStyle->confirm('Are you sure you want to proceed?', true)) {
-            $this->cliStyle->writeln('Aborted.');
+        if (!$force && !CliLogger::getCliStyle()->confirm('Are you sure you want to proceed?', true)) {
+            CliLogger::writeln('Aborted.');
             return Command::FAILURE;
         }
 
-        // ---- Import demo data using the DemoDataImportService
         $result = $this->demoDataImportService->installDemoData('demo-products.csv', $categoryId);
 
-        // ---- Display imported products in a table
         if (isset($result['importedProducts']) && is_array($result['importedProducts'])) {
-            $this->cliStyle->section('Imported Articles');
+            CliLogger::section('Imported Articles');
             
             $tableHeaders = ['Product Number', 'Name', 'EAN', 'MPN'];
             $tableRows = [];
@@ -101,11 +98,11 @@ class ImportDemoProductsCommand extends AbstractTopdataCommand
                 ];
             }
             
-            $this->cliStyle->table($tableHeaders, $tableRows);
-            $this->cliStyle->newLine();
+            CliLogger::getCliStyle()->table($tableHeaders, $tableRows);
+            CliLogger::writeln('');
         }
 
-        $categoryName = $categoryId ? $this->getCategoryName($categoryId) : null;
+        $categoryName = $categoryId ? $this->_getCategoryName($categoryId) : null;
         
         $successMessage = 'Demo data imported successfully!';
         if ($categoryName) {
@@ -116,8 +113,8 @@ class ImportDemoProductsCommand extends AbstractTopdataCommand
             $successMessage .= ' Products have been imported.';
         }
         
-        $this->cliStyle->success($successMessage);
-        $this->cliStyle->writeln("Consider to run <info>topdata:connector:import</info> command to enrich the products with additional data.");
+        CliLogger::success($successMessage);
+        CliLogger::writeln("Consider to run <info>topdata:connector:import</info> command to enrich the products with additional data.");
 
         $this->done();
 
@@ -125,12 +122,9 @@ class ImportDemoProductsCommand extends AbstractTopdataCommand
     }
 
     /**
-     * Get category name by ID.
-     *
-     * @param string $categoryId The ID of the category.
-     * @return string|null The name of the category, or null if not found.
+     * Fetches a category name by UUID.
      */
-    private function getCategoryName(string $categoryId): ?string
+    private function _getCategoryName(string $categoryId): ?string
     {
         $criteria = new Criteria([$categoryId]);
         $category = $this->categoryRepository->search($criteria, Context::createDefaultContext())->first();
@@ -139,35 +133,31 @@ class ImportDemoProductsCommand extends AbstractTopdataCommand
     }
 
     /**
-     * Interactively retrieves a category ID from the user via a console choice.
-     *
-     * @return string|null The selected category ID, or null if no category was selected.
+     * Interactively asks the user to pick a category.
      */
     private function _getCategoryFromInteractiveChoice(): ?string
     {
-        $criteria = new \Shopware\Core\Framework\DataAbstractionLayer\Search\Criteria();
+        $criteria = new Criteria();
         $criteria->addSorting(new \Shopware\Core\Framework\DataAbstractionLayer\Search\Sorting\FieldSorting('name'));
         $criteria->addAssociation('parent');
         $criteria->setLimit(100);
 
-        $categories = $this->categoryRepository->search($criteria, \Shopware\Core\Framework\Context::createDefaultContext());
+        $categories = $this->categoryRepository->search($criteria, Context::createDefaultContext());
         
         if ($categories->count() === 0) {
-            $this->cliStyle->warning('No categories found in the system.');
+            CliLogger::warning('No categories found in the system.');
             return null;
         }
 
-        // ---- Build category tree for breadcrumb generation
         $categoryMap = [];
         foreach ($categories as $category) {
             $categoryMap[$category->getId()] = $category;
         }
 
-        // ---- Prepare an array to hold category data for sorting
         $categoriesData = [];
         foreach ($categories as $category) {
             /** @var CategoryEntity $category */
-            $breadcrumb = $this->buildBreadcrumb($category, $categoryMap);
+            $breadcrumb = $this->_buildBreadcrumb($category, $categoryMap);
             $depth = count($breadcrumb);
             $displayName = implode(' > ', $breadcrumb);
             
@@ -179,13 +169,10 @@ class ImportDemoProductsCommand extends AbstractTopdataCommand
             ];
         }
 
-        // ---- Sort categories by depth (shallowest first) and then by display name
         usort($categoriesData, function($a, $b) {
-            // First, compare by depth
             if ($a['depth'] !== $b['depth']) {
                 return $a['depth'] - $b['depth'];
             }
-            // If same depth, compare by display name
             return strcmp($a['displayName'], $b['displayName']);
         });
 
@@ -195,35 +182,27 @@ class ImportDemoProductsCommand extends AbstractTopdataCommand
             $choices[$category->getId()] = $data['displayName'];
         }
 
-        $this->cliStyle->section('Category Selection');
-        $this->cliStyle->writeln('Please select a category to import the demo products into:');
+        CliLogger::section('Category Selection');
+        CliLogger::writeln('Please select a category to import the demo products into:');
         
-        $selectedCategoryId = $this->cliStyle->choice(
+        return CliLogger::getCliStyle()->choice(
             'Select category',
             $choices,
             array_key_first($choices)
         );
-
-        return $selectedCategoryId;
     }
 
     /**
-     * Builds a breadcrumb path for a given category based on its parent categories.
-     *
-     * @param CategoryEntity $category The category to build the breadcrumb for.
-     * @param array<string, CategoryEntity> $categoryMap An array of categories, indexed by their IDs.
-     * @return string[] The breadcrumb path as an array of category names.
+     * Helper to build visual string tree paths of parent-child category relations.
      */
-    private function buildBreadcrumb(CategoryEntity $category, array $categoryMap): array
+    private function _buildBreadcrumb(CategoryEntity $category, array $categoryMap): array
     {
         $breadcrumb = [];
         $current = $category;
         
-        // ---- Build breadcrumb from current category up to root
         while ($current !== null) {
             array_unshift($breadcrumb, $current->getName() ?? 'Unnamed Category');
             
-            // ---- Check if parent exists in our loaded categories
             $parentId = $current->getParentId();
             if ($parentId && isset($categoryMap[$parentId])) {
                 $current = $categoryMap[$parentId];

@@ -12,14 +12,10 @@ use Symfony\Component\Console\Output\OutputInterface;
 use Topdata\TopdataDemoDataImporterSW6\DTO\CsvConfiguration;
 use Topdata\TopdataDemoDataImporterSW6\Service\DemoProductService;
 use Topdata\TopdataFoundationSW6\Command\AbstractTopdataCommand;
+use Topdata\TopdataFoundationSW6\Util\CliLogger;
 
 /**
- * Command to import products from a CSV file into Shopware 6.
- *
- * This command allows importing product data from a CSV file into a Shopware 6 instance.
- * It provides options to configure the CSV file path, column mappings, and import range.
- *
- * 11/2024 moved from TopdataConnectorSW6::ProductsCommand to TopdataDemoDataImporterSW6::ImportProductsCsvCommand
+ * Command for importing custom product lists from CSV file layouts.
  */
 #[AsCommand(
     name: 'topdata:demo-data-importer:import-products-csv',
@@ -27,59 +23,53 @@ use Topdata\TopdataFoundationSW6\Command\AbstractTopdataCommand;
 )]
 class ImportProductsCsvCommand extends AbstractTopdataCommand
 {
-    /**
-     * @param DemoProductService $productService
-     */
     public function __construct(
         private readonly DemoProductService $productService
-    )
-    {
+    ) {
         parent::__construct();
     }
 
     /**
-     * Configures the command with options for CSV file path, column mappings, and import range.
-     *
-     * options for indexes of the columns in the CSV file:
-     *     - Required options: file, name, number
-     *     - Optional options: start, end, wsid, description, ean, mpn, brand, divider, trim
+     * Configures the input arguments.
      */
     protected function configure(): void
     {
-            $this->addOption('file', null, InputOption::VALUE_REQUIRED, 'Path to the CSV file');
-            $this->addOption('start', null, InputOption::VALUE_OPTIONAL, 'Start line number for import');
-            $this->addOption('end', null, InputOption::VALUE_OPTIONAL, 'End line number for import');
-            $this->addOption('name', null, InputOption::VALUE_REQUIRED, 'Column number for product name');
-            $this->addOption('number', null, InputOption::VALUE_REQUIRED, 'Column number for product number');
-            $this->addOption('wsid', null, InputOption::VALUE_OPTIONAL, 'Column number for Topdata webservice ID');
-            $this->addOption('description', null, InputOption::VALUE_OPTIONAL, 'Column number for product description');
-            $this->addOption('ean', null, InputOption::VALUE_OPTIONAL, 'Column number for EAN');
-            $this->addOption('mpn', null, InputOption::VALUE_OPTIONAL, 'Column number for MPN');
-            $this->addOption('brand', null, InputOption::VALUE_OPTIONAL, 'Column number for brand');
-            $this->addOption('divider', null, InputOption::VALUE_OPTIONAL, 'CSV column delimiter (default: ;)');
-            $this->addOption('trim', null, InputOption::VALUE_OPTIONAL, 'Character to trim from values (default: ")');
+        $this->addOption('file', null, InputOption::VALUE_REQUIRED, 'Path to the CSV file');
+        $this->addOption('start', null, InputOption::VALUE_OPTIONAL, 'Start line number for import');
+        $this->addOption('end', null, InputOption::VALUE_OPTIONAL, 'End line number for import');
+        $this->addOption('name', null, InputOption::VALUE_REQUIRED, 'Column number for product name');
+        $this->addOption('number', null, InputOption::VALUE_REQUIRED, 'Column number for product number');
+        $this->addOption('wsid', null, InputOption::VALUE_OPTIONAL, 'Column number for Topdata webservice ID');
+        $this->addOption('description', null, InputOption::VALUE_OPTIONAL, 'Column number for product description');
+        $this->addOption('ean', null, InputOption::VALUE_OPTIONAL, 'Column number for EAN');
+        $this->addOption('mpn', null, InputOption::VALUE_OPTIONAL, 'Column number for MPN');
+        $this->addOption('brand', null, InputOption::VALUE_OPTIONAL, 'Column number for brand');
+        $this->addOption('divider', null, InputOption::VALUE_OPTIONAL, 'CSV column delimiter (default: ;)');
+        $this->addOption('trim', null, InputOption::VALUE_OPTIONAL, 'Character to trim from values (default: ")');
     }
 
     /**
-     * Executes the command to import products from a CSV file.
-     *
-     * @param InputInterface $input The input interface.
-     * @param OutputInterface $output The output interface.
-     * @return int 0 if successful, otherwise a non-zero value.
+     * Initializes the command environment.
+     */
+    protected function initialize(InputInterface $input, OutputInterface $output): void
+    {
+        parent::initialize($input, $output);
+        CliLogger::setCliStyle($this->cliStyle);
+    }
+
+    /**
+     * Main CLI routine to run custom file parser imports.
      */
     public function execute(InputInterface $input, OutputInterface $output): int
     {
-        // ---- Get the file path from the input options
         $file = $input->getOption('file');
         if (!$file) {
-            echo "add file!\n";
-
+            CliLogger::error('Missing required option: --file');
             return Command::FAILURE;
         }
 
-        echo $file . "\n";
+        CliLogger::info('Processing CSV file: ' . $file);
 
-        // ---- Define the column mapping based on the input options
         $columnMapping = [
             'number'      => (int)$input->getOption('number'),
             'name'        => (int)$input->getOption('name'),
@@ -90,7 +80,6 @@ class ImportProductsCsvCommand extends AbstractTopdataCommand
             'brand'       => $input->getOption('brand') ? (int)$input->getOption('brand') : null,
         ];
 
-        // ---- Create a CsvConfiguration object based on the input options
         $csvConfig = new CsvConfiguration(
             $input->getOption('divider') ?? ';',
             $input->getOption('trim') ?? '"',
@@ -99,38 +88,34 @@ class ImportProductsCsvCommand extends AbstractTopdataCommand
             $columnMapping
         );
 
-        // ---- Parse the products from the CSV file
         try {
             $products = $this->productService->parseProductsFromCsv($file, $csvConfig);
         } catch (\RuntimeException $e) {
-            $this->cliStyle->error($e->getMessage());
-            return 3;
+            CliLogger::error($e->getMessage());
+            return Command::FAILURE;
         }
 
-        $this->cliStyle->writeln('Products in file: ' . count($products));
+        CliLogger::info('Products in file: ' . count($products));
 
-        // ---- Clear existing products by product number
         $products = $this->productService->clearExistingProductsByProductNumber($products);
 
-        $this->cliStyle->writeln('Products not added yet: ' . count($products));
+        CliLogger::info('Products not added yet: ' . count($products));
 
-        // ---- Form the products array
         if (count($products)) {
             $products = $this->productService->formProductsArray($products);
         } else {
-            echo 'no products found';
-
-            return 4;
+            CliLogger::warning('No products found to add.');
+            return Command::SUCCESS;
         }
 
-        // ---- Chunk the products array and create the products
         $prods = array_chunk($products, 50);
         foreach ($prods as $key => $prods_chunk) {
-            echo 'adding ' . ($key * 50 + count($prods_chunk)) . ' of ' . count($products) . " products...\n";
+            CliLogger::info(sprintf('Adding %d of %d products...', $key * 50 + count($prods_chunk), count($products)));
             $this->productService->createProducts($prods_chunk);
         }
 
-        return 0;
-    }
+        CliLogger::success('Products successfully processed.');
 
+        return Command::SUCCESS;
+    }
 }

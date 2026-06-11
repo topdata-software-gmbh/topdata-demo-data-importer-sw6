@@ -1,16 +1,16 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Topdata\TopdataDemoDataImporterSW6\DTO;
 
 /**
- * Represents the configuration for importing data from a CSV file.
- * Defines the delimiter, enclosure, start line, end line, and column mapping.
+ * Data Transfer Object storing the custom parsing parameters for CSV product imports.
  */
 class CsvConfiguration
 {
-
     /**
-     * @param array<string, int|null> $columnMapping An array mapping column names to their respective index in the CSV file. Null indicates the column should be skipped.
+     * @param array<string, int|null> $columnMapping Maps property names to CSV column indexes.
      */
     public function __construct(
         private readonly string $delimiter,
@@ -18,8 +18,7 @@ class CsvConfiguration
         private readonly int    $startLine,
         private readonly ?int   $endLine,
         private readonly array  $columnMapping
-    )
-    {
+    ) {
     }
 
     public function getDelimiter(): string
@@ -43,8 +42,6 @@ class CsvConfiguration
     }
 
     /**
-     * Returns the column mapping configuration.
-     *
      * @return array<string, int|null>
      */
     public function getColumnMapping(): array

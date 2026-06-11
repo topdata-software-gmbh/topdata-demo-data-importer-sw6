@@ -12,24 +12,21 @@ use Topdata\TopdataDemoDataImporterSW6\Service\DemoDataImportService;
 use Topdata\TopdataDemoDataImporterSW6\Service\DemoProductService;
 
 /**
- * 11/2024 extracted from TopdataWebserviceConnectorAdminApiController
+ * Administration API controller providing endpoints for demo data operations.
  */
 #[Route(
     defaults: ['_routeScope' => ['administration']],
 )]
 class TopdataDemoDataAdminApiController extends AbstractController
 {
-
     public function __construct(
         private readonly DemoDataImportService $demoDataImportService,
         private readonly DemoProductService        $productService,
-    )
-    {
+    ) {
     }
 
-
     /**
-     * Install demo data.
+     * Installs products from the default bundled demo CSV.
      */
     #[Route(
         path: '/api/topdata-demo-data/install-demodata',
@@ -43,7 +40,7 @@ class TopdataDemoDataAdminApiController extends AbstractController
     }
 
     /**
-     * Get status of demo data.
+     * Returns statistics of existing demo products in store.
      */
     #[Route(
         path: '/api/topdata-demo-data/status',
@@ -71,7 +68,7 @@ class TopdataDemoDataAdminApiController extends AbstractController
     }
 
     /**
-     * Remove demo data.
+     * Purges all imported demo products.
      */
     #[Route(
         path: '/api/topdata-demo-data/remove-demodata',
@@ -84,7 +81,6 @@ class TopdataDemoDataAdminApiController extends AbstractController
         $demoProducts = $this->productService->getDemoProducts($context)->getEntities();
 
         $deletedProductsData = [];
-
         foreach ($demoProducts as $product) {
             $deletedProductsData[] = [
                 'productNumber' => $product->getProductNumber(),

@@ -19,15 +19,12 @@ use Topdata\TopdataDemoDataImporterSW6\TopdataDemoDataImporterSW6;
 use Topdata\TopdataFoundationSW6\Service\LocaleHelperService;
 
 /**
- * Service class for handling product-related operations, such as importing, creating, and clearing products.
- * 07/2024 created (extracted from "ProductsCommand")
- * 11/2024 moved from TopdataConnectorSW6 to TopdataDemoDataImporterSW6
+ * Service managing demo product lifetime, search, format mapping, creation, and database removal.
  */
 class DemoProductService
 {
     private string $systemDefaultLocaleCode;
     private Context $context;
-
 
     public function __construct(
         private readonly EntityRepository    $productRepository,
@@ -35,66 +32,13 @@ class DemoProductService
         private readonly Connection          $connection,
         private readonly ProductCsvReader    $productCsvReader,
         private readonly LocaleHelperService $localeHelperService,
-    )
-    {
+    ) {
         $this->context = Context::createDefaultContext();
         $this->systemDefaultLocaleCode = $this->localeHelperService->getLocaleCodeOfSystemLanguage();
     }
 
-
     /**
-     * Retrieves the ID of a tax with a rate of 19.00 or the first available tax ID.
-     *
-     * @return string The tax ID.
-     *
-     * @throws \RuntimeException If no tax is found.
-     */
-    private function _getTaxId(): string
-    {
-        $result = $this->connection->executeQuery('
-            SELECT LOWER(HEX(COALESCE(
-                (SELECT `id` FROM `tax` WHERE tax_rate = "19.00" LIMIT 1),
-                (SELECT `id` FROM `tax`  LIMIT 1)
-            )))
-        ')->fetchOne();
-
-        if (!$result) {
-            throw new \RuntimeException('No tax found, please make sure that basic data is available by running the migrations.');
-        }
-
-        return (string)$result;
-    }
-
-    /**
-     * Retrieves the ID of the storefront sales channel.
-     *
-     * @return string The storefront sales channel ID.
-     *
-     * @throws \RuntimeException If no sales channel is found.
-     */
-    private function _getStorefrontSalesChannel(): string
-    {
-        $result = $this->connection->executeQuery('
-            SELECT LOWER(HEX(`id`))
-            FROM `sales_channel`
-            WHERE `type_id` = 0x' . Defaults::SALES_CHANNEL_TYPE_STOREFRONT . '
-            ORDER BY `created_at` ASC            
-        ')->fetchOne();
-
-        if (!$result) {
-            throw new \RuntimeException('No sale channel found.');
-        }
-
-        return (string)$result;
-    }
-
-    /**
-     * Parses product data from a CSV file.
-     *
-     * @param string $filePath The path to the CSV file.
-     * @param CsvConfiguration $config The CSV configuration.
-     *
-     * @return array The parsed product data.
+     * Parses product datasets from a raw CSV source using standard configurations.
      */
     public function parseProductsFromCsv(string $filePath, CsvConfiguration $config): array
     {
@@ -102,20 +46,14 @@ class DemoProductService
     }
 
     /**
-     * Forms an array of product data suitable for creating products in Shopware 6.
-     *
-     * @param array $input An array of product data from the CSV file.
-     * @param float $price The base price of the product.
-     * @param string|null $categoryId The ID of the category to assign the product to.
-     *
-     * @return array The formatted product data.
+     * Constructs a Shopware-compliant structural array of products ready for execution payload.
      */
     public function formProductsArray(array $input, float $price = 1.0, ?string $categoryId = null): array
     {
         $output = [];
         $taxId = $this->_getTaxId();
         $storefrontSalesChannel = $this->_getStorefrontSalesChannel();
-        $priceTax = $price * (1.19);
+        $priceTax = $price * 1.19;
 
         foreach ($input as $in) {
             $prod = [
@@ -159,12 +97,6 @@ class DemoProductService
                 ];
             }
 
-//            if (isset($in['brand'])) {
-//                $prod['manufacturer'] = [
-//                    'id' => $this->_getManufacturerIdByName($in['brand']),
-//                ];
-//            }
-
             if (isset($in['mpn'])) {
                 $prod['manufacturerNumber'] = $in['mpn'];
             }
@@ -186,15 +118,16 @@ class DemoProductService
     }
 
     /**
-     * Creates products in Shopware 6.
-     *
-     * @param array $products An array of product data.
+     * Performs persistence operations to write product details to the repository.
      */
     public function createProducts(array $products): void
     {
         $this->productRepository->create($products, $this->context);
     }
 
+    /**
+     * Resolves the list of existing products flagged as demo content.
+     */
     public function getDemoProducts(Context $context): EntitySearchResult
     {
         $criteria = new Criteria();
@@ -205,6 +138,9 @@ class DemoProductService
         return $this->productRepository->search($criteria, $context);
     }
 
+    /**
+     * Deletes all imported demo products from the system database.
+     */
     public function removeDemoProducts(Context $context): void
     {
         $ids = $this->getDemoProducts($context)->getIds();
@@ -220,23 +156,16 @@ class DemoProductService
     }
 
     /**
-     * Clears existing products based on their product number.
-     *
-     * @param array $products An array of product data, indexed by product number.
-     *
-     * @return array The product data with existing products removed.
+     * Prevents database duplication by matching and skipping existing product numbers.
      */
     public function clearExistingProductsByProductNumber(array $products): array
     {
         $rezProducts = $products;
-        // ---- Chunk the products array to avoid exceeding database limits
         $product_arrays = array_chunk($products, 50, true);
         foreach ($product_arrays as $prods) {
-            // ---- Create a criteria to search for products with the given product numbers
             $criteria = new Criteria();
             $criteria->addFilter(new EqualsAnyFilter('productNumber', array_keys($prods)));
             $foundedProducts = $this->productRepository->search($criteria, $this->context)->getEntities();
-            // ---- Unset the products that were found in the database
             foreach ($foundedProducts as $foundedProd) {
                 unset($rezProducts[$foundedProd->getProductNumber()]);
             }
@@ -245,28 +174,41 @@ class DemoProductService
         return $rezProducts;
     }
 
-//    private function _getManufacturerIdByName(string $name): string
-//    {
-//        $criteria = new Criteria();
-//        $criteria->addFilter(new EqualsFilter('name', $name));
-//
-//        $manufacturer = $this->productManufacturerRepository->search($criteria, $this->context)->first();
-//
-//        if ($manufacturer !== null) {
-//            return $manufacturer->getId();
-//        }
-//
-//        // Manufacturer not found, create a new one
-//        $newManufacturerId = Uuid::randomHex();
-//        $this->productManufacturerRepository->create([
-//            [
-//                'id'   => $newManufacturerId,
-//                'name' => $name,
-//            ]
-//        ], $this->context);
-//
-//        return $newManufacturerId;
-//    }
+    /**
+     * Returns the matching standard system tax rate.
+     */
+    private function _getTaxId(): string
+    {
+        $result = $this->connection->executeQuery('
+            SELECT LOWER(HEX(COALESCE(
+                (SELECT `id` FROM `tax` WHERE tax_rate = "19.00" LIMIT 1),
+                (SELECT `id` FROM `tax`  LIMIT 1)
+            )))
+        ')->fetchOne();
 
+        if (!$result) {
+            throw new \RuntimeException('No tax found, please make sure that basic data is available by running the migrations.');
+        }
 
+        return (string)$result;
+    }
+
+    /**
+     * Returns the default storefront sales channel UUID.
+     */
+    private function _getStorefrontSalesChannel(): string
+    {
+        $result = $this->connection->executeQuery('
+            SELECT LOWER(HEX(`id`))
+            FROM `sales_channel`
+            WHERE `type_id` = 0x' . Defaults::SALES_CHANNEL_TYPE_STOREFRONT . '
+            ORDER BY `created_at` ASC            
+        ')->fetchOne();
+
+        if (!$result) {
+            throw new \RuntimeException('No sale channel found.');
+        }
+
+        return (string)$result;
+    }
 }

@@ -10,7 +10,7 @@ use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 use Topdata\TopdataDemoDataImporterSW6\DTO\CsvConfiguration;
-use Topdata\TopdataDemoDataImporterSW6\Service\ProductService;
+use Topdata\TopdataDemoDataImporterSW6\Service\DemoProductService;
 use Topdata\TopdataFoundationSW6\Command\AbstractTopdataCommand;
 
 /**
@@ -28,10 +28,10 @@ use Topdata\TopdataFoundationSW6\Command\AbstractTopdataCommand;
 class ImportProductsCsvCommand extends AbstractTopdataCommand
 {
     /**
-     * @param ProductService $productService
+     * @param DemoProductService $productService
      */
     public function __construct(
-        private readonly ProductService $productService
+        private readonly DemoProductService $productService
     )
     {
         parent::__construct();

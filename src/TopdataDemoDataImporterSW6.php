@@ -10,6 +10,7 @@ use Shopware\Core\Framework\Plugin;
 use Shopware\Core\Framework\Plugin\Context\InstallContext;
 use Shopware\Core\Framework\Plugin\Context\UninstallContext;
 use Shopware\Core\System\CustomField\CustomFieldTypes;
+use Topdata\TopdataDemoDataImporterSW6\Service\DemoProductService;
 
 /**
  * Plugin to import demo data for Topdata products into Shopware 6.
@@ -33,25 +34,6 @@ class TopdataDemoDataImporterSW6 extends Plugin
     {
         parent::install($installContext);
         $this->_createCustomFieldSet($installContext->getContext());
-    }
-
-    /**
-     * Uninstalls the plugin.
-     *
-     * This method is called during the plugin uninstallation process.
-     * It removes the custom field set, unless the user has chosen to keep the user data.
-     *
-     * @param UninstallContext $uninstallContext The context of the uninstallation process.
-     */
-    public function uninstall(UninstallContext $uninstallContext): void
-    {
-        parent::uninstall($uninstallContext);
-
-        if ($uninstallContext->keepUserData()) {
-            return;
-        }
-
-        $this->_removeCustomFieldSet($uninstallContext->getContext());
     }
 
     /**
@@ -108,6 +90,23 @@ class TopdataDemoDataImporterSW6 extends Plugin
     }
 
     /**
+     * Uninstalls the plugin.
+     *
+     * This method is called during the plugin uninstallation process.
+     * It removes the custom field set associated with this plugin.
+     *
+     * @param UninstallContext $uninstallContext The context of the uninstallation process.
+     */
+    public function uninstall(UninstallContext $uninstallContext): void
+    {
+        parent::uninstall($uninstallContext);
+
+        $context = $uninstallContext->getContext();
+        $this->container->get(DemoProductService::class)->removeDemoProducts($context);
+        $this->_removeCustomFieldSet($context);
+    }
+
+    /**
      * Removes the custom field set.
      *
      * @param Context $context The context of the current operation.
@@ -129,4 +128,5 @@ class TopdataDemoDataImporterSW6 extends Plugin
         // ---- Delete the custom field set
         $customFieldSetRepository->delete([['id' => $id]], $context);
     }
+
 }

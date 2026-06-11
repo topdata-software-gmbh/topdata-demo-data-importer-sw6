@@ -12,6 +12,7 @@ use Shopware\Core\Framework\DataAbstractionLayer\EntityRepository;
 use Shopware\Core\Framework\DataAbstractionLayer\Search\Criteria;
 use Shopware\Core\Framework\DataAbstractionLayer\Search\Filter\EqualsAnyFilter;
 use Shopware\Core\Framework\DataAbstractionLayer\Search\Filter\EqualsFilter;
+use Shopware\Core\Framework\DataAbstractionLayer\Search\EntitySearchResult;
 use Shopware\Core\Framework\Uuid\Uuid;
 use Topdata\TopdataDemoDataImporterSW6\DTO\CsvConfiguration;
 use Topdata\TopdataDemoDataImporterSW6\TopdataDemoDataImporterSW6;
@@ -22,7 +23,7 @@ use Topdata\TopdataFoundationSW6\Service\LocaleHelperService;
  * 07/2024 created (extracted from "ProductsCommand")
  * 11/2024 moved from TopdataConnectorSW6 to TopdataDemoDataImporterSW6
  */
-class ProductService
+class DemoProductService
 {
     private string $systemDefaultLocaleCode;
     private Context $context;
@@ -48,7 +49,7 @@ class ProductService
      *
      * @throws \RuntimeException If no tax is found.
      */
-    private function getTaxId(): string
+    private function _getTaxId(): string
     {
         $result = $this->connection->executeQuery('
             SELECT LOWER(HEX(COALESCE(
@@ -71,7 +72,7 @@ class ProductService
      *
      * @throws \RuntimeException If no sales channel is found.
      */
-    private function getStorefrontSalesChannel(): string
+    private function _getStorefrontSalesChannel(): string
     {
         $result = $this->connection->executeQuery('
             SELECT LOWER(HEX(`id`))
@@ -112,8 +113,8 @@ class ProductService
     public function formProductsArray(array $input, float $price = 1.0, ?string $categoryId = null): array
     {
         $output = [];
-        $taxId = $this->getTaxId();
-        $storefrontSalesChannel = $this->getStorefrontSalesChannel();
+        $taxId = $this->_getTaxId();
+        $storefrontSalesChannel = $this->_getStorefrontSalesChannel();
         $priceTax = $price * (1.19);
 
         foreach ($input as $in) {
@@ -192,6 +193,30 @@ class ProductService
     public function createProducts(array $products): void
     {
         $this->productRepository->create($products, $this->context);
+    }
+
+    public function getDemoProducts(Context $context): EntitySearchResult
+    {
+        $criteria = new Criteria();
+        $criteria->addFilter(new EqualsFilter('customFields.' . TopdataDemoDataImporterSW6::CUSTOM_FIELD_IS_DEMO_PRODUCT, true));
+        $criteria->addAssociation('manufacturer');
+        $criteria->setLimit(500);
+
+        return $this->productRepository->search($criteria, $context);
+    }
+
+    public function removeDemoProducts(Context $context): void
+    {
+        $ids = $this->getDemoProducts($context)->getIds();
+
+        if (empty($ids)) {
+            return;
+        }
+
+        $this->productRepository->delete(
+            array_map(fn(string $id) => ['id' => $id], $ids),
+            $context
+        );
     }
 
     /**

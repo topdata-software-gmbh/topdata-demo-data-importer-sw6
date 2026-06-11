@@ -5,14 +5,11 @@ declare(strict_types=1);
 namespace Topdata\TopdataDemoDataImporterSW6\Controller;
 
 use Shopware\Core\Framework\Context;
-use Shopware\Core\Framework\DataAbstractionLayer\EntityRepository;
-use Shopware\Core\Framework\DataAbstractionLayer\Search\Criteria;
-use Shopware\Core\Framework\DataAbstractionLayer\Search\Filter\EqualsFilter;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\Routing\Annotation\Route;
 use Topdata\TopdataDemoDataImporterSW6\Service\DemoDataImportService;
-use Topdata\TopdataDemoDataImporterSW6\TopdataDemoDataImporterSW6;
+use Topdata\TopdataDemoDataImporterSW6\Service\DemoProductService;
 
 /**
  * 11/2024 extracted from TopdataWebserviceConnectorAdminApiController
@@ -25,7 +22,7 @@ class TopdataDemoDataAdminApiController extends AbstractController
 
     public function __construct(
         private readonly DemoDataImportService $demoDataImportService,
-        private readonly EntityRepository      $productRepository,
+        private readonly DemoProductService        $productService,
     )
     {
     }
@@ -55,22 +52,20 @@ class TopdataDemoDataAdminApiController extends AbstractController
     )]
     public function getDemoDataStatus(): JsonResponse
     {
-        $criteria = new Criteria();
-        $criteria->addFilter(new EqualsFilter('customFields.' . TopdataDemoDataImporterSW6::CUSTOM_FIELD_IS_DEMO_PRODUCT, true));
-        $demoProductsResult = $this->productRepository->search($criteria, Context::createDefaultContext());
+        $demoProductsResult = $this->productService->getDemoProducts(Context::createDefaultContext());
 
         $products = [];
         foreach ($demoProductsResult->getEntities() as $product) {
             $products[] = [
                 'productNumber' => $product->getProductNumber(),
-                'name' => $product->getName(),
-                'ean' => $product->getEan(),
-                'mpn' => $product->getManufacturerNumber()
+                'name'          => $product->getName(),
+                'ean'           => $product->getEan(),
+                'mpn'           => $product->getManufacturerNumber()
             ];
         }
 
         return new JsonResponse([
-            'count' => $demoProductsResult->getTotal(),
+            'count'    => $demoProductsResult->getTotal(),
             'products' => $products
         ]);
     }
@@ -85,30 +80,25 @@ class TopdataDemoDataAdminApiController extends AbstractController
     )]
     public function removeDemoData(): JsonResponse
     {
-        $criteria = new Criteria();
-        $criteria->addFilter(new EqualsFilter('customFields.' . TopdataDemoDataImporterSW6::CUSTOM_FIELD_IS_DEMO_PRODUCT, true));
-        $demoProducts = $this->productRepository->search($criteria, Context::createDefaultContext())->getEntities();
+        $context = Context::createDefaultContext();
+        $demoProducts = $this->productService->getDemoProducts($context)->getEntities();
 
         $deletedProductsData = [];
-        $demoProductIds = [];
 
         foreach ($demoProducts as $product) {
             $deletedProductsData[] = [
                 'productNumber' => $product->getProductNumber(),
-                'name' => $product->getName(),
-                'ean' => $product->getEan(),
-                'mpn' => $product->getManufacturerNumber()
+                'name'          => $product->getName(),
+                'ean'           => $product->getEan(),
+                'mpn'           => $product->getManufacturerNumber()
             ];
-            $demoProductIds[] = $product->getId();
         }
 
-        if (!empty($demoProductIds)) {
-            $this->productRepository->delete(array_map(fn($id) => ['id' => $id], $demoProductIds), Context::createDefaultContext());
-        }
+        $this->productService->removeDemoProducts($context);
 
         return new JsonResponse([
-            'status' => 'success',
-            'deletedCount' => count($demoProductIds),
+            'status'          => 'success',
+            'deletedCount'    => count($deletedProductsData),
             'deletedProducts' => $deletedProductsData
         ]);
     }

@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Topdata\TopdataDemoDataImporterSW6\Service;
 
-use Topdata\TopdataDemoDataImporterSW6\Service\ProductService;
+use Topdata\TopdataDemoDataImporterSW6\Service\DemoProductService;
 
 /**
  * This service handles the import of demo data from a CSV file into the Shopware 6 system.
@@ -21,7 +21,7 @@ class DemoDataImportService
     private string $trim;
 
     public function __construct(
-        private readonly ProductService $productService
+        private readonly DemoProductService $productService
     )
     {
     }

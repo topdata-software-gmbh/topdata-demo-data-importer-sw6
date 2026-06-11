@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Topdata\TopdataDemoDataImporterSW6\Service;
 
-use Doctrine\DBAL\Connection;
 use Shopware\Core\Content\Product\Aggregate\ProductVisibility\ProductVisibilityDefinition;
 use Shopware\Core\Defaults;
 use Shopware\Core\Framework\Context;
@@ -12,25 +11,24 @@ use Shopware\Core\Framework\DataAbstractionLayer\EntityRepository;
 use Shopware\Core\Framework\DataAbstractionLayer\Search\Criteria;
 use Shopware\Core\Framework\DataAbstractionLayer\Search\Filter\EqualsAnyFilter;
 use Shopware\Core\Framework\DataAbstractionLayer\Search\Filter\EqualsFilter;
+use Shopware\Core\Framework\DataAbstractionLayer\Search\Sorting\FieldSorting;
 use Shopware\Core\Framework\DataAbstractionLayer\Search\EntitySearchResult;
 use Shopware\Core\Framework\Uuid\Uuid;
 use Topdata\TopdataDemoDataImporterSW6\DTO\CsvConfiguration;
+use Topdata\TopdataDemoDataImporterSW6\DTO\ProductImportDto;
 use Topdata\TopdataDemoDataImporterSW6\TopdataDemoDataImporterSW6;
 use Topdata\TopdataFoundationSW6\Service\LocaleHelperService;
 
-/**
- * Service managing demo product lifetime, search, format mapping, creation, and database removal.
- */
-class DemoProductService
+class DemoProductService implements DemoProductServiceInterface
 {
     private string $systemDefaultLocaleCode;
     private Context $context;
 
     public function __construct(
         private readonly EntityRepository    $productRepository,
-        private readonly EntityRepository    $productManufacturerRepository,
-        private readonly Connection          $connection,
-        private readonly ProductCsvReader    $productCsvReader,
+        private readonly EntityRepository    $taxRepository,
+        private readonly EntityRepository    $salesChannelRepository,
+        private readonly ProductCsvReaderInterface $productCsvReader,
         private readonly LocaleHelperService $localeHelperService,
     ) {
         $this->context = Context::createDefaultContext();
@@ -38,7 +36,7 @@ class DemoProductService
     }
 
     /**
-     * Parses product datasets from a raw CSV source using standard configurations.
+     * @return array<string, ProductImportDto>
      */
     public function parseProductsFromCsv(string $filePath, CsvConfiguration $config): array
     {
@@ -46,7 +44,7 @@ class DemoProductService
     }
 
     /**
-     * Constructs a Shopware-compliant structural array of products ready for execution payload.
+     * @param array<string, ProductImportDto> $input
      */
     public function formProductsArray(array $input, float $price = 1.0, ?string $categoryId = null): array
     {
@@ -55,10 +53,11 @@ class DemoProductService
         $storefrontSalesChannel = $this->_getStorefrontSalesChannel();
         $priceTax = $price * 1.19;
 
-        foreach ($input as $in) {
+        foreach ($input as $dto) {
+            /** @var ProductImportDto $dto */
             $prod = [
                 'id'               => Uuid::randomHex(),
-                'productNumber'    => $in['productNumber'],
+                'productNumber'    => $dto->getProductNumber(),
                 'active'           => true,
                 'taxId'            => $taxId,
                 'stock'            => 10,
@@ -66,7 +65,7 @@ class DemoProductService
                 'purchasePrice'    => $priceTax,
                 'displayInListing' => true,
                 'name'             => [
-                    $this->systemDefaultLocaleCode => $in['name'],
+                    $this->systemDefaultLocaleCode => $dto->getName(),
                 ],
                 'price'            => [[
                     'net'        => $price,
@@ -91,23 +90,23 @@ class DemoProductService
                 ];
             }
 
-            if (isset($in['description'])) {
+            if ($dto->getDescription() !== null) {
                 $prod['description'] = [
-                    $this->systemDefaultLocaleCode => $in['description'],
+                    $this->systemDefaultLocaleCode => $dto->getDescription(),
                 ];
             }
 
-            if (isset($in['mpn'])) {
-                $prod['manufacturerNumber'] = $in['mpn'];
+            if ($dto->getMpn() !== null) {
+                $prod['manufacturerNumber'] = $dto->getMpn();
             }
 
-            if (isset($in['ean'])) {
-                $prod['ean'] = $in['ean'];
+            if ($dto->getEan() !== null) {
+                $prod['ean'] = $dto->getEan();
             }
 
-            if (isset($in['topDataId'])) {
+            if ($dto->getTopDataId() !== null) {
                 $prod['topdata'] = [
-                    'topDataId' => $in['topDataId'],
+                    'topDataId' => $dto->getTopDataId(),
                 ];
             }
 
@@ -117,30 +116,20 @@ class DemoProductService
         return $output;
     }
 
-    /**
-     * Performs persistence operations to write product details to the repository.
-     */
     public function createProducts(array $products): void
     {
         $this->productRepository->create($products, $this->context);
     }
 
-    /**
-     * Resolves the list of existing products flagged as demo content.
-     */
     public function getDemoProducts(Context $context): EntitySearchResult
     {
         $criteria = new Criteria();
         $criteria->addFilter(new EqualsFilter('customFields.' . TopdataDemoDataImporterSW6::CUSTOM_FIELD_IS_DEMO_PRODUCT, true));
-        $criteria->addAssociation('manufacturer');
         $criteria->setLimit(500);
 
         return $this->productRepository->search($criteria, $context);
     }
 
-    /**
-     * Deletes all imported demo products from the system database.
-     */
     public function removeDemoProducts(Context $context): void
     {
         $ids = $this->getDemoProducts($context)->getIds();
@@ -156,16 +145,18 @@ class DemoProductService
     }
 
     /**
-     * Prevents database duplication by matching and skipping existing product numbers.
+     * @param array<string, ProductImportDto> $products
      */
     public function clearExistingProductsByProductNumber(array $products): array
     {
         $rezProducts = $products;
         $product_arrays = array_chunk($products, 50, true);
+
         foreach ($product_arrays as $prods) {
             $criteria = new Criteria();
             $criteria->addFilter(new EqualsAnyFilter('productNumber', array_keys($prods)));
             $foundedProducts = $this->productRepository->search($criteria, $this->context)->getEntities();
+
             foreach ($foundedProducts as $foundedProd) {
                 unset($rezProducts[$foundedProd->getProductNumber()]);
             }
@@ -174,41 +165,40 @@ class DemoProductService
         return $rezProducts;
     }
 
-    /**
-     * Returns the matching standard system tax rate.
-     */
     private function _getTaxId(): string
     {
-        $result = $this->connection->executeQuery('
-            SELECT LOWER(HEX(COALESCE(
-                (SELECT `id` FROM `tax` WHERE tax_rate = "19.00" LIMIT 1),
-                (SELECT `id` FROM `tax`  LIMIT 1)
-            )))
-        ')->fetchOne();
+        $criteria = new Criteria();
+        $criteria->addFilter(new EqualsFilter('taxRate', 19.0));
+        $criteria->setLimit(1);
 
-        if (!$result) {
-            throw new \RuntimeException('No tax found, please make sure that basic data is available by running the migrations.');
+        $tax = $this->taxRepository->search($criteria, $this->context)->first();
+
+        if ($tax === null) {
+            $fallbackCriteria = new Criteria();
+            $fallbackCriteria->setLimit(1);
+            $tax = $this->taxRepository->search($fallbackCriteria, $this->context)->first();
         }
 
-        return (string)$result;
+        if ($tax === null) {
+            throw new \RuntimeException('No tax settings configured in this shop. Please verify core tax classes are installed.');
+        }
+
+        return $tax->getId();
     }
 
-    /**
-     * Returns the default storefront sales channel UUID.
-     */
     private function _getStorefrontSalesChannel(): string
     {
-        $result = $this->connection->executeQuery('
-            SELECT LOWER(HEX(`id`))
-            FROM `sales_channel`
-            WHERE `type_id` = 0x' . Defaults::SALES_CHANNEL_TYPE_STOREFRONT . '
-            ORDER BY `created_at` ASC            
-        ')->fetchOne();
+        $criteria = new Criteria();
+        $criteria->addFilter(new EqualsFilter('typeId', Defaults::SALES_CHANNEL_TYPE_STOREFRONT));
+        $criteria->addSorting(new FieldSorting('createdAt', FieldSorting::ASCENDING));
+        $criteria->setLimit(1);
 
-        if (!$result) {
-            throw new \RuntimeException('No sale channel found.');
+        $salesChannel = $this->salesChannelRepository->search($criteria, $this->context)->first();
+
+        if ($salesChannel === null) {
+            throw new \RuntimeException('No storefront sales channel was found in this Shopware installation.');
         }
 
-        return (string)$result;
+        return $salesChannel->getId();
     }
 }

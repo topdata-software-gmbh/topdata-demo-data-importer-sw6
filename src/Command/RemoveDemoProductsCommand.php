@@ -10,7 +10,7 @@ use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
-use Topdata\TopdataDemoDataImporterSW6\Service\DemoProductService;
+use Topdata\TopdataDemoDataImporterSW6\Service\DemoProductServiceInterface;
 use Topdata\TopdataFoundationSW6\Command\AbstractTopdataCommand;
 use Topdata\TopdataFoundationSW6\Util\CliLogger;
 
@@ -24,7 +24,7 @@ use Topdata\TopdataFoundationSW6\Util\CliLogger;
 class RemoveDemoProductsCommand extends AbstractTopdataCommand
 {
     public function __construct(
-        private readonly DemoProductService $productService
+        private readonly DemoProductServiceInterface $productService
     ) {
         parent::__construct();
     }

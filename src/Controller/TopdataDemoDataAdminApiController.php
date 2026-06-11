@@ -8,8 +8,8 @@ use Shopware\Core\Framework\Context;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\Routing\Annotation\Route;
-use Topdata\TopdataDemoDataImporterSW6\Service\DemoDataImportService;
-use Topdata\TopdataDemoDataImporterSW6\Service\DemoProductService;
+use Topdata\TopdataDemoDataImporterSW6\Service\DemoDataImportServiceInterface;
+use Topdata\TopdataDemoDataImporterSW6\Service\DemoProductServiceInterface;
 
 /**
  * Administration API controller providing endpoints for demo data operations.
@@ -20,8 +20,8 @@ use Topdata\TopdataDemoDataImporterSW6\Service\DemoProductService;
 class TopdataDemoDataAdminApiController extends AbstractController
 {
     public function __construct(
-        private readonly DemoDataImportService $demoDataImportService,
-        private readonly DemoProductService        $productService,
+        private readonly DemoDataImportServiceInterface $demoDataImportService,
+        private readonly DemoProductServiceInterface     $productService,
     ) {
     }
 

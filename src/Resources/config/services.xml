@@ -4,13 +4,27 @@
            xsi:schemaLocation="http://symfony.com/schema/dic/services http://symfony.com/schema/dic/services/services-1.0.xsd">
 
     <services>
+        <!-- CONCRETE SERVICE REFS BIND TO INTERFACES -->
+        <service id="Topdata\TopdataDemoDataImporterSW6\Service\ProductCsvReaderInterface"
+                 class="Topdata\TopdataDemoDataImporterSW6\Service\ProductCsvReader"
+                 autowire="true"/>
 
+        <service id="Topdata\TopdataDemoDataImporterSW6\Service\DemoProductServiceInterface"
+                 class="Topdata\TopdataDemoDataImporterSW6\Service\DemoProductService"
+                 autowire="true">
+            <argument type="service" key="$taxRepository" id="tax.repository"/>
+            <argument type="service" key="$salesChannelRepository" id="sales_channel.repository"/>
+        </service>
 
-        <!-- SERVICES -->
-        <service id="Topdata\TopdataDemoDataImporterSW6\Service\DemoProductService" autowire="true"/>
-        <service id="Topdata\TopdataDemoDataImporterSW6\Service\ProductCsvReader" autowire="true"/>
-        <service id="Topdata\TopdataDemoDataImporterSW6\Service\DemoDataImportService" autowire="true"/>
+        <service id="Topdata\TopdataDemoDataImporterSW6\Service\DemoDataImportServiceInterface"
+                 class="Topdata\TopdataDemoDataImporterSW6\Service\DemoDataImportService"
+                 autowire="true"/>
 
+        <service id="Topdata\TopdataDemoDataImporterSW6\Service\CategorySelectorServiceInterface"
+                 class="Topdata\TopdataDemoDataImporterSW6\Service\CategorySelectorService"
+                 autowire="true">
+            <argument type="service" key="$categoryRepository" id="category.repository"/>
+        </service>
 
         <!-- COMMANDS -->
         <service id="Topdata\TopdataDemoDataImporterSW6\Command\ImportProductsCsvCommand" autowire="true">
@@ -31,6 +45,8 @@
 
         <!-- CONTROLLERS -->
         <service id="Topdata\TopdataDemoDataImporterSW6\Controller\TopdataDemoDataAdminApiController" public="true" autowire="true">
+            <argument type="service" id="Topdata\TopdataDemoDataImporterSW6\Service\DemoDataImportServiceInterface"/>
+            <argument type="service" id="Topdata\TopdataDemoDataImporterSW6\Service\DemoProductServiceInterface"/>
             <call method="setContainer">
                 <argument type="service" id="service_container"/>
             </call>

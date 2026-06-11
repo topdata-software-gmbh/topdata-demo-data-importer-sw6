@@ -4,30 +4,18 @@ declare(strict_types=1);
 
 namespace Topdata\TopdataDemoDataImporterSW6\Service;
 
-/**
- * High-level orchestration service reading and importing bundled product configurations.
- */
-class DemoDataImportService
-{
-    private ?int $columnNumber = null;
-    private ?int $columnName = null;
-    private ?int $columnEAN = null;
-    private ?int $columnMPN = null;
-    private string $divider;
-    private string $trim;
+use Topdata\TopdataDemoDataImporterSW6\DTO\CsvConfiguration;
 
+class DemoDataImportService implements DemoDataImportServiceInterface
+{
     public function __construct(
-        private readonly DemoProductService $productService
+        private readonly DemoProductServiceInterface $productService,
+        private readonly ProductCsvReaderInterface  $csvReader
     ) {
     }
 
-    /**
-     * Reads a predefined CSV file from the resources directory and imports the products.
-     */
     public function installDemoData(string $filename = 'demo-products.csv', ?string $categoryId = null): array
     {
-        $this->divider = ';';
-        $this->trim = '"';
         if (!$filename) {
             return [
                 'success'        => false,
@@ -36,86 +24,34 @@ class DemoDataImportService
         }
 
         $file = __DIR__ . '/../Resources/demo-data/' . $filename;
-        $handle = fopen($file, 'r');
-        if (!$handle) {
+        if (!file_exists($file)) {
             return [
                 'success'        => false,
                 'additionalInfo' => 'file with demo not accessible!',
             ];
         }
 
-        $line = fgets($handle);
-        if ($line === false) {
+        $columnMapping = $this->_resolveHeaders($file);
+        if ($columnMapping === null) {
             return [
                 'success'        => false,
-                'additionalInfo' => 'file is empty!',
+                'additionalInfo' => 'Required columns are missing or file is unreadable!',
             ];
         }
 
-        $values = explode($this->divider, $line);
+        $config = new CsvConfiguration(';', '"', 2, null, $columnMapping);
 
-        foreach ($values as $key => $val) {
-            $val = trim($val);
-            if ($val === 'article_no') {
-                $this->columnNumber = $key;
-            }
-            if ($val === 'short_desc') {
-                $this->columnName = $key;
-            }
-            if ($val === 'ean') {
-                $this->columnEAN = $key;
-            }
-            if ($val === 'oem') {
-                $this->columnMPN = $key;
-            }
-        }
-
-        if (is_null($this->columnNumber)) {
+        try {
+            $parsedProducts = $this->csvReader->readProducts($file, $config);
+        } catch (\Exception $e) {
             return [
                 'success'        => false,
-                'additionalInfo' => 'article_no column not exists!',
+                'additionalInfo' => $e->getMessage(),
             ];
         }
 
-        if (is_null($this->columnName)) {
-            return [
-                'success'        => false,
-                'additionalInfo' => 'short_desc column not exists!',
-            ];
-        }
+        $products = $this->productService->clearExistingProductsByProductNumber($parsedProducts);
 
-        if (is_null($this->columnEAN)) {
-            return [
-                'success'        => false,
-                'additionalInfo' => 'ean column not exists!',
-            ];
-        }
-
-        if (is_null($this->columnMPN)) {
-            return [
-                'success'        => false,
-                'additionalInfo' => 'oem column not exists!',
-            ];
-        }
-
-        $products = [];
-
-        while (($line = fgets($handle)) !== false) {
-            $values = explode($this->divider, $line);
-            foreach ($values as $key => $val) {
-                $values[$key] = trim($val, $this->trim);
-            }
-            $products[$values[$this->columnNumber]] = [
-                'productNumber' => trim($values[$this->columnNumber]),
-                'name'          => trim($values[$this->columnName]),
-                'ean'           => trim($values[$this->columnEAN]),
-                'mpn'           => trim($values[$this->columnMPN]),
-            ];
-        }
-
-        fclose($handle);
-
-        $products = $this->productService->clearExistingProductsByProductNumber($products);
         if (count($products)) {
             $products = $this->productService->formProductsArray($products, 100000.0, $categoryId);
         } else {
@@ -139,5 +75,45 @@ class DemoDataImportService
                 ];
             }, $products)
         ];
+    }
+
+    private function _resolveHeaders(string $file): ?array
+    {
+        $handle = fopen($file, 'r');
+        if (!$handle) {
+            return null;
+        }
+
+        $line = fgets($handle);
+        fclose($handle);
+
+        if ($line === false) {
+            return null;
+        }
+
+        $headers = explode(';', $line);
+        $mapping = [];
+
+        foreach ($headers as $key => $header) {
+            $header = trim($header);
+            if ($header === 'article_no') {
+                $mapping['number'] = $key;
+            }
+            if ($header === 'short_desc') {
+                $mapping['name'] = $key;
+            }
+            if ($header === 'ean') {
+                $mapping['ean'] = $key;
+            }
+            if ($header === 'oem') {
+                $mapping['mpn'] = $key;
+            }
+        }
+
+        if (!isset($mapping['number']) || !isset($mapping['name'])) {
+            return null;
+        }
+
+        return $mapping;
     }
 }

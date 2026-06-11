@@ -6,17 +6,12 @@ namespace Topdata\TopdataDemoDataImporterSW6\Service;
 
 use RuntimeException;
 use Topdata\TopdataDemoDataImporterSW6\DTO\CsvConfiguration;
+use Topdata\TopdataDemoDataImporterSW6\DTO\ProductImportDto;
 
-/**
- * Service for parsing and reading product data from CSV files.
- * This helper processes CSV handles and transforms raw data rows into structured product arrays.
- */
-class ProductCsvReader
+class ProductCsvReader implements ProductCsvReaderInterface
 {
     /**
-     * Reads and parses product data from a CSV file based on the provided configuration.
-     *
-     * @throws RuntimeException if the file cannot be accessed or is invalid.
+     * @return array<string, ProductImportDto>
      */
     public function readProducts(string $filePath, CsvConfiguration $config): array
     {
@@ -37,7 +32,7 @@ class ProductCsvReader
     }
 
     /**
-     * Iterates through the file rows and extracts matching product data.
+     * @return array<string, ProductImportDto>
      */
     private function _processFile($handle, CsvConfiguration $config): array
     {
@@ -65,36 +60,23 @@ class ProductCsvReader
                 continue;
             }
 
-            $products[$values[$mapping['number']]] = $this->_mapRowToProduct($values, $mapping);
+            $number = $values[$mapping['number']];
+            $products[$number] = $this->_mapRowToProduct($values, $mapping);
         }
 
         return $products;
     }
 
-    /**
-     * Maps an array of raw row values to a structured product.
-     */
-    private function _mapRowToProduct(array $values, array $mapping): array
+    private function _mapRowToProduct(array $values, array $mapping): ProductImportDto
     {
-        $product = [
-            'productNumber' => $values[$mapping['number']],
-            'name'          => $values[$mapping['name']],
-        ];
-
-        $optionalFields = [
-            'wsid'        => 'topDataId',
-            'description' => 'description',
-            'ean'         => 'ean',
-            'mpn'         => 'mpn',
-            'brand'       => 'brand'
-        ];
-
-        foreach ($optionalFields as $csvField => $productField) {
-            if (isset($mapping[$csvField]) && isset($values[$mapping[$csvField]])) {
-                $product[$productField] = $values[$mapping[$csvField]];
-            }
-        }
-
-        return $product;
+        return new ProductImportDto(
+            productNumber: $values[$mapping['number']],
+            name: $values[$mapping['name']],
+            ean: (isset($mapping['ean']) && isset($values[$mapping['ean']])) ? $values[$mapping['ean']] : null,
+            mpn: (isset($mapping['mpn']) && isset($values[$mapping['mpn']])) ? $values[$mapping['mpn']] : null,
+            description: (isset($mapping['description']) && isset($values[$mapping['description']])) ? $values[$mapping['description']] : null,
+            topDataId: (isset($mapping['wsid']) && isset($values[$mapping['wsid']])) ? $values[$mapping['wsid']] : null,
+            brand: (isset($mapping['brand']) && isset($values[$mapping['brand']])) ? $values[$mapping['brand']] : null
+        );
     }
 }
